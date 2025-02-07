@@ -18,5 +18,11 @@ p {
 </style>
 <h1>Hello World</h1>
 <p>I'm hosted with GitHub Pages.</p>
+<button class="learn-more">
+  <span class="circle" aria-hidden="true">
+  <span class="icon arrow"></span>
+  </span>
+  <span class="button-text">Learn More</span>
+</button>
 </body>
 </html>
