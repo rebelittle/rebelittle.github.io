@@ -45,6 +45,50 @@ let eligibility = {};
 let locked = false;
 let draftKey = null;
 
+function hidePickUI() {
+  // Hide anything that looks like a form
+  if (tiebreakerCard) tiebreakerCard.classList.add("hidden");
+  if (playerListsCard) playerListsCard.classList.add("hidden");
+
+  if (propsRoot) {
+    propsRoot.innerHTML = "";
+    propsRoot.classList.add("hidden");
+  }
+
+  if (formError) formError.classList.add("hidden");
+
+  // Hide the bottom buttons so there’s no “Review/Submit” affordance
+  if (btnNext) btnNext.classList.add("hidden");
+  if (btnBack) btnBack.classList.add("hidden");
+}
+
+function showLockedMessage({ lockAt, awayTeam, homeTeam }) {
+  // Only create once
+  if (document.getElementById("lockedCard")) return;
+
+  const card = document.createElement("div");
+  card.id = "lockedCard";
+  card.className = "card";
+
+  const when = lockAt ? new Date(lockAt).toLocaleString() : null;
+  const matchup = (awayTeam && homeTeam) ? `${awayTeam} vs ${homeTeam}` : null;
+
+  card.innerHTML = `
+    <h2 style="margin:0 0 8px;">Picks are locked 🔒</h2>
+    <div class="small">
+      ${matchup ? `${matchup}<br>` : ""}
+      ${when ? `Picks closed at ${when}.` : "Picks are closed."}
+    </div>
+    <div style="margin-top:12px;">
+      <a href="./leaderboard.html">Go to leaderboard →</a>
+    </div>
+  `;
+
+  // Put it at the top of the picks page
+  if (pagePicks) pagePicks.insertBefore(card, pagePicks.firstChild);
+}
+
+
 function setStep(n) {
   step1.classList.toggle("active", n === 1);
   step2.classList.toggle("active", n === 2);
@@ -725,6 +769,7 @@ try {
   const lockAt = new Date(cfg.lock_at);
   locked = cfg.lock_enabled && new Date() >= lockAt;
 
+  // Show real header info
   teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
   teamsLine.classList.remove("hidden");
 
@@ -735,20 +780,28 @@ try {
 
   if (locked) {
     statusLine.innerHTML = `<span class="error">Picks are locked.</span>`;
-    disableAllInputs(true);
 
-    // NEW: hide all props/tiebreaker/player lists
-    showLockedCard(cfg.lock_at);
-    hideAllPickUI();
-    return; // IMPORTANT: do not render props
+    // Hide the entire pick UI + show a locked card with leaderboard link
+    hidePickUI();
+    showLockedMessage({
+      lockAt: cfg.lock_at,
+      awayTeam: cfg.away_team,
+      homeTeam: cfg.home_team
+    });
+
+    // IMPORTANT: stop here so no props render
+    return;
   } else {
     statusLine.textContent = `Picks open.`;
-    showPickUI();
   }
 } else {
+  // No config row — default to showing picks
   statusLine.innerHTML = `<span class="small">Game config not found. (game_config row missing for game_id: ${propsData.gameId})</span>`;
-  showPickUI();
 }
+
+// Only runs when NOT locked
+renderAllProps();
+
     renderAllProps();
   } catch (e) {
     showError(formError, String(e?.message ?? e));
