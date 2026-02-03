@@ -34,10 +34,7 @@ const reviewError = document.getElementById("reviewError");
 // === State ===
 let propsData = null;
 let eligibility = {};
-let config = null;
 let locked = false;
-
-// local draft storage (helps mobile users)
 let draftKey = null;
 
 function setStep(n) {
@@ -52,8 +49,7 @@ function setStep(n) {
   btnBack.classList.toggle("hidden", n === 1 || n === 3);
   btnNext.classList.toggle("hidden", n === 3);
 
-  if (n === 1) btnNext.textContent = "Review picks";
-  if (n === 2) btnNext.textContent = "Confirm & submit";
+  btnNext.textContent = (n === 2) ? "Confirm & submit" : "Review picks";
 }
 
 function showError(el, msg) {
@@ -64,10 +60,15 @@ function clearError(el) {
   el.textContent = "";
   el.classList.add("hidden");
 }
-
 function norm(s){ return String(s ?? "").trim(); }
 
-// === Build choices ===
+function disableAllInputs(disabled) {
+  document.querySelectorAll("input, select, button").forEach(el => {
+    if (el.id === "btnBack") return; // let them navigate back
+    el.disabled = disabled;
+  });
+}
+
 function makeSelect({ id, options, placeholder = "Select…", required = true }) {
   const sel = document.createElement("select");
   sel.id = id;
@@ -96,8 +97,8 @@ function makeOptionalText(id, placeholder) {
   return inp;
 }
 
-// player/text prop: selection menu + optional manual text
-function renderSelectPlusText(prop, defaults = {}) {
+// For free-text/player props: dropdown + conditional text
+function renderSelectPlusText(prop) {
   const wrap = document.createElement("div");
   wrap.className = "grid2";
 
@@ -107,38 +108,26 @@ function renderSelectPlusText(prop, defaults = {}) {
   const left = document.createElement("div");
   const right = document.createElement("div");
 
-  const baseOptions = [
-    { value: "TEXT", label: "Type a name/value (manual)" }
-  ];
-
-  // If prop has explicit options (rare for players), include them.
-  const extra = Array.isArray(prop.options)
-    ? prop.options.map(x => ({ value: String(x), label: String(x) }))
-    : [];
-
   const sel = makeSelect({
     id: selectId,
-    options: [...extra, ...baseOptions],
-    placeholder: "Choose input method…",
+    options: [{ value: "TEXT", label: "Type a name/value (manual)" }],
+    placeholder: "Choose input…",
     required: true
   });
 
-  const txt = makeOptionalText(textId, defaults.placeholder ?? "Enter player/value…");
+  const txt = makeOptionalText(textId, "Enter player/value…");
+  txt.required = true;
 
-  // Show/hide text based on selection
   function sync() {
-    const v = sel.value;
-    const manual = (v === "TEXT" || v === "");
+    const manual = (sel.value === "TEXT" || sel.value === "");
     right.classList.toggle("hidden", !manual);
-    if (manual) txt.required = true;
-    else txt.required = false;
+    txt.required = manual;
   }
   sel.addEventListener("change", sync);
   sync();
 
   left.appendChild(sel);
   right.appendChild(txt);
-
   wrap.appendChild(left);
   wrap.appendChild(right);
   return wrap;
@@ -149,24 +138,22 @@ function renderPropControl(prop) {
   block.className = "prop";
   block.dataset.propId = prop.id;
 
-  const metaParts = [];
-  if (prop.type === "over_under") metaParts.push(`Line: ${prop.line}`);
-  if (typeof prop.points !== "undefined") metaParts.push(`Points: ${prop.points}`);
-  if (typeof prop.pointsCorrectYes !== "undefined") {
-    metaParts.push(`YES: +${prop.pointsCorrectYes} / -${Math.abs(prop.pointsIncorrectYes)}`);
-  }
+  const meta = [];
+  if (prop.type === "over_under") meta.push(`Line: ${prop.line}`);
+  if (prop.type === "spread_pick") meta.push(`Pick a side`);
+  if (typeof prop.points !== "undefined") meta.push(`Points: ${prop.points}`);
+  if (typeof prop.pointsCorrectYes !== "undefined") meta.push(`YES: +${prop.pointsCorrectYes} / ${prop.pointsIncorrectYes}`);
 
   block.innerHTML = `
     <div class="propTitle">
       <div>
         <b>${prop.label}</b>
-        <div class="meta">${metaParts.join(" • ")}</div>
+        <div class="meta">${meta.join(" • ")}</div>
       </div>
       <div class="badge">${(prop.points ?? prop.pointsCorrectYes ?? 0)} pts</div>
     </div>
   `;
 
-  // Controls
   let control = null;
 
   if (prop.type === "over_under") {
@@ -178,95 +165,76 @@ function renderPropControl(prop) {
       ],
       placeholder: "Select Over/Under…"
     });
-  }
-  else if (prop.type === "team_pick") {
-    const opts = (prop.options ?? []).map(x => ({ value: String(x), label: String(x) }));
+  } else if (prop.type === "team_pick") {
     control = makeSelect({
       id: `pick_${prop.id}`,
-      options: opts,
-      placeholder: "Select team…"
+      options: (prop.options ?? []).map(x => ({ value: String(x), label: String(x) })),
+      placeholder: "Select…"
     });
-  }
-  else if (prop.type === "spread_pick") {
-    const opts = (prop.options ?? []).map(x => {
-      const sp = Number(x.spread);
-      const sign = sp >= 0 ? "+" : "";
-      return { value: x.team, label: `${x.team} ${sign}${sp}` };
-    });
+  } else if (prop.type === "spread_pick") {
     control = makeSelect({
       id: `pick_${prop.id}`,
-      options: opts,
+      options: (prop.options ?? []).map(x => {
+        const sp = Number(x.spread);
+        const sign = sp >= 0 ? "+" : "";
+        return { value: x.team, label: `${x.team} ${sign}${sp}` };
+      }),
       placeholder: "Select side…"
     });
-  }
-  else if (prop.type === "yes_only_boolean") {
+  } else if (prop.type === "yes_only_boolean") {
     control = makeSelect({
       id: `pick_${prop.id}`,
       options: [
         { value: "YES", label: "YES (risk it)" },
         { value: "NO", label: "NO (0 either way)" }
       ],
-      placeholder: "Select YES/NO…"
+      placeholder: "Select…"
     });
-  }
-  else if (prop.type === "yes_only_player_from_list") {
-    // Always a selection menu (dropdown). Include NONE.
-    const noneLabel = prop.noneLabel ?? "NONE";
-    const opts = [
-      { value: noneLabel, label: noneLabel },
-      { value: "TEXT", label: "Type a player name (manual)" }
-    ];
-    // Render dropdown + optional text
+  } else if (prop.type === "yes_only_player_from_list") {
     const wrap = document.createElement("div");
     wrap.className = "grid2";
 
-    const sel = makeSelect({ id: `pick_${prop.id}_select`, options: opts, placeholder: "Choose…" });
+    const sel = makeSelect({
+      id: `pick_${prop.id}_select`,
+      options: [
+        { value: prop.noneLabel ?? "NONE", label: prop.noneLabel ?? "NONE" },
+        { value: "TEXT", label: "Type player name (manual)" }
+      ],
+      placeholder: "Select…"
+    });
+
+    const right = document.createElement("div");
     const txt = makeOptionalText(`pick_${prop.id}_text`, "Enter player name…");
+    right.appendChild(txt);
 
     function sync() {
       const manual = sel.value === "TEXT";
-      txt.parentElement.classList.toggle("hidden", !manual);
+      right.classList.toggle("hidden", !manual);
       txt.required = manual;
     }
-    const right = document.createElement("div");
-    right.appendChild(txt);
+    sel.addEventListener("change", sync);
+    sync();
 
     const left = document.createElement("div");
     left.appendChild(sel);
 
     wrap.appendChild(left);
     wrap.appendChild(right);
-
-    sel.addEventListener("change", sync);
-    sync();
-
     control = wrap;
-  }
-  else if (prop.type === "restricted_anytime_td") {
-    // Dropdown populated from eligibility.json
+  } else if (prop.type === "restricted_anytime_td") {
     const listKey = prop.eligibleListKey;
     const list = Array.isArray(eligibility?.[listKey]) ? eligibility[listKey] : [];
-    const opts = list.map(name => ({ value: name, label: name }));
-
     control = makeSelect({
       id: `pick_${prop.id}`,
-      options: opts,
+      options: list.map(name => ({ value: name, label: name })),
       placeholder: "Select eligible player…"
     });
-
-    const hint = document.createElement("div");
-    hint.className = "inlineHelp";
-    hint.textContent = "Only players with ≤3 regular-season TDs are eligible.";
-    block.appendChild(hint);
-  }
-  else {
-    // player_anytime_td, player_equals, text_equals, etc.
-    control = renderSelectPlusText(prop, { placeholder: "Enter player/value…" });
+  } else {
+    control = renderSelectPlusText(prop);
   }
 
   block.appendChild(control);
 
-  // mark required visually
   const help = document.createElement("div");
   help.className = "inlineHelp";
   help.textContent = "Required.";
@@ -287,95 +255,65 @@ function groupBySection(props) {
 
 function renderAllProps() {
   propsRoot.innerHTML = "";
-
   const sectionMap = groupBySection(propsData.props);
 
   for (const [section, items] of sectionMap.entries()) {
     const det = document.createElement("details");
     det.open = true;
-
     const sum = document.createElement("summary");
     sum.innerHTML = `<span>${section}</span><span class="badge">${items.length} picks</span>`;
     det.appendChild(sum);
 
-    for (const prop of items) {
-      det.appendChild(renderPropControl(prop));
-    }
-
+    for (const prop of items) det.appendChild(renderPropControl(prop));
     propsRoot.appendChild(det);
   }
-
-  // lock disables all inputs
-  if (locked) disableAllInputs(true);
 }
 
-function disableAllInputs(disabled) {
-  const inputs = document.querySelectorAll("input, select, button");
-  inputs.forEach(el => {
-    // keep nav links clickable; only disable form inputs/buttons
-    if (el.tagName === "BUTTON" || el.tagName === "INPUT" || el.tagName === "SELECT") {
-      // allow back button when reviewing even if locked? (doesn't matter)
-      if (el.id === "btnBack") return;
-      el.disabled = disabled;
-    }
-  });
-}
-
-// === Collect picks ===
 function getPropPickValue(prop) {
-  // return { ok:boolean, value:string, error?:string }
   const baseId = `pick_${prop.id}`;
 
-  if (prop.type === "over_under" || prop.type === "team_pick" || prop.type === "spread_pick" || prop.type === "yes_only_boolean" || prop.type === "restricted_anytime_td") {
-    const sel = document.getElementById(baseId);
-    const v = sel?.value ?? "";
-    if (!v) return { ok: false, error: "Missing pick." };
-    return { ok: true, value: v };
+  if (["over_under","team_pick","spread_pick","yes_only_boolean","restricted_anytime_td"].includes(prop.type)) {
+    const v = document.getElementById(baseId)?.value ?? "";
+    if (!v) return { ok:false, error:"Missing pick." };
+    return { ok:true, value:v };
   }
 
   if (prop.type === "yes_only_player_from_list") {
     const sel = document.getElementById(`${baseId}_select`);
     const txt = document.getElementById(`${baseId}_text`);
     const v = sel?.value ?? "";
-    if (!v) return { ok: false, error: "Missing pick." };
+    if (!v) return { ok:false, error:"Missing pick." };
     if (v === "TEXT") {
       const t = norm(txt?.value);
-      if (!t) return { ok: false, error: "Enter a player name." };
-      return { ok: true, value: t };
+      if (!t) return { ok:false, error:"Enter a player name." };
+      return { ok:true, value:t };
     }
-    return { ok: true, value: v };
+    return { ok:true, value:v };
   }
 
-  // default: select + optional text
   const sel = document.getElementById(`${baseId}_select`);
   const txt = document.getElementById(`${baseId}_text`);
-
   const sv = sel?.value ?? "";
-  if (!sv) return { ok: false, error: "Choose input method." };
-
+  if (!sv) return { ok:false, error:"Choose input method." };
   if (sv === "TEXT") {
     const t = norm(txt?.value);
-    if (!t) return { ok: false, error: "Enter a value." };
-    return { ok: true, value: t };
+    if (!t) return { ok:false, error:"Enter a value." };
+    return { ok:true, value:t };
   }
-
-  // if user picked a specific option from select
-  return { ok: true, value: sv };
-}
-
-function firstInvalidScrollIntoView() {
-  const first = propsRoot.querySelector(".error:not(.hidden)");
-  if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+  return { ok:true, value:sv };
 }
 
 function validateAndCollect() {
   clearError(formError);
-  statusLine.textContent = "";
+
+  if (!propsData?.props?.length) {
+    showError(formError, "Site error: props.json not loaded. Check that props.json exists beside index.html.");
+    return null;
+  }
 
   const player_name = norm(playerNameEl.value);
   if (!player_name) {
     showError(formError, "Enter your name before continuing.");
-    playerNameEl.scrollIntoView({ behavior: "smooth", block: "center" });
     return null;
   }
 
@@ -383,12 +321,10 @@ function validateAndCollect() {
   const tbAway = Number(tbAwayEl.value);
   if (!Number.isInteger(tbHome) || tbHome < 0 || tbHome > 99) {
     showError(formError, "Enter a valid home score (0–99).");
-    tbHomeEl.scrollIntoView({ behavior: "smooth", block: "center" });
     return null;
   }
   if (!Number.isInteger(tbAway) || tbAway < 0 || tbAway > 99) {
     showError(formError, "Enter a valid away score (0–99).");
-    tbAwayEl.scrollIntoView({ behavior: "smooth", block: "center" });
     return null;
   }
 
@@ -396,13 +332,12 @@ function validateAndCollect() {
   propsRoot.querySelectorAll(".prop .error").forEach(e => e.remove());
 
   const picks = {};
-  let missingCount = 0;
+  let missing = 0;
 
   for (const prop of propsData.props) {
     const res = getPropPickValue(prop);
     if (!res.ok) {
-      missingCount++;
-      // attach error to prop block
+      missing++;
       const block = propsRoot.querySelector(`.prop[data-prop-id="${prop.id}"]`);
       if (block) {
         const err = document.createElement("div");
@@ -415,232 +350,180 @@ function validateAndCollect() {
     }
   }
 
-  if (missingCount > 0) {
-    showError(formError, `Missing ${missingCount} pick(s). Please fill everything out.`);
-    firstInvalidScrollIntoView();
+  if (missing > 0) {
+    showError(formError, `Missing ${missing} pick(s). Fill everything out.`);
     return null;
   }
 
-  return { player_name, tiebreaker_home: tbHome, tiebreaker_away: tbAway, picks };
+  // Store tiebreaker INSIDE picks to match your current Supabase schema
+  picks["_tiebreaker_final_score"] = { home: tbHome, away: tbAway };
+
+  return { player_name, picks, tbHome, tbAway };
 }
 
-// === Review screen ===
+function prettyPick(prop, v) {
+  if (prop.type === "over_under") return v === "O" ? "Over" : "Under";
+  if (prop.type === "spread_pick") {
+    const match = (prop.options ?? []).find(x => x.team === v);
+    if (!match) return v;
+    const sp = Number(match.spread);
+    const sign = sp >= 0 ? "+" : "";
+    return `${v} ${sign}${sp}`;
+  }
+  return v;
+}
+
 function buildReview(payload) {
   reviewList.innerHTML = "";
   clearError(reviewError);
 
-  const sections = groupBySection(propsData.props);
-  const frag = document.createDocumentFragment();
-
-  // tiebreaker first
   const tb = document.createElement("div");
   tb.className = "reviewItem";
   tb.innerHTML = `
     <div class="k">Tiebreaker: Final score prediction</div>
-    <div class="v">${payload.tiebreaker_home} – ${payload.tiebreaker_away}</div>
+    <div class="v">${payload.tbHome} – ${payload.tbAway}</div>
   `;
-  frag.appendChild(tb);
+  reviewList.appendChild(tb);
 
+  const sections = groupBySection(propsData.props);
   for (const [section, items] of sections.entries()) {
     const head = document.createElement("div");
     head.className = "sectionHead";
     head.innerHTML = `<h2>${section}</h2><span class="small">${items.length} picks</span>`;
-    frag.appendChild(head);
+    reviewList.appendChild(head);
 
     for (const prop of items) {
       const v = payload.picks[prop.id];
       const it = document.createElement("div");
       it.className = "reviewItem";
-
-      let pretty = v;
-      if (prop.type === "over_under") pretty = (v === "O") ? "Over" : "Under";
-
       it.innerHTML = `
         <div class="k">${prop.label}</div>
-        <div class="v">${pretty}</div>
+        <div class="v">${prettyPick(prop, v)}</div>
       `;
-      frag.appendChild(it);
+      reviewList.appendChild(it);
     }
   }
-
-  reviewList.appendChild(frag);
 }
 
-// === Draft save/load ===
-function saveDraft() {
-  if (!draftKey) return;
-  const data = {
-    name: playerNameEl.value,
-    tbHome: tbHomeEl.value,
-    tbAway: tbAwayEl.value,
-    values: {}
-  };
+// Bind navigation immediately (even if async loads fail)
+setStep(1);
 
-  // capture all selects/inputs we render (except name/tb)
-  const els = propsRoot.querySelectorAll("select, input[type='text'], input[type='number']");
-  els.forEach(el => {
-    if (!el.id) return;
-    data.values[el.id] = el.value;
-  });
+btnNext.addEventListener("click", async () => {
+  if (locked) return;
 
-  localStorage.setItem(draftKey, JSON.stringify(data));
-}
+  if (!pagePicks.classList.contains("hidden")) {
+    const payload = validateAndCollect();
+    if (!payload) return;
+    buildReview(payload);
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
 
-function loadDraft() {
-  if (!draftKey) return;
-  const raw = localStorage.getItem(draftKey);
-  if (!raw) return;
-  try {
-    const data = JSON.parse(raw);
-    if (data?.name) playerNameEl.value = data.name;
-    if (data?.tbHome !== undefined) tbHomeEl.value = data.tbHome;
-    if (data?.tbAway !== undefined) tbAwayEl.value = data.tbAway;
-
-    // restore after props rendered
-    for (const [id, val] of Object.entries(data?.values ?? {})) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      el.value = val;
-
-      // if this is a select that controls visibility, trigger change
-      if (el.tagName === "SELECT") el.dispatchEvent(new Event("change", { bubbles: true }));
+  if (!pageReview.classList.contains("hidden")) {
+    const payload = validateAndCollect();
+    if (!payload) {
+      showError(reviewError, "Fix missing fields before submitting.");
+      return;
     }
-  } catch {}
-}
 
-function clearDraft() {
-  if (!draftKey) return;
-  localStorage.removeItem(draftKey);
-}
+    clearError(reviewError);
+    btnNext.disabled = true;
+    btnBack.disabled = true;
+    btnNext.textContent = "Submitting…";
 
-// === Load props + config and init ===
+    // matches your current submissions schema: only (game_id, player_name, picks)
+    const { error } = await supabase
+      .from("submissions")
+      .insert(
+        [{ game_id: propsData.gameId, player_name: payload.player_name, picks: payload.picks }],
+        { returning: "minimal" }
+      );
+
+    if (error) {
+      btnNext.disabled = false;
+      btnBack.disabled = false;
+      btnNext.textContent = "Confirm & submit";
+
+      const msg =
+        (error.code === "23505")
+          ? "That name already submitted picks for this game. Only one entry per name."
+          : `Submit failed: ${error.message}`;
+
+      showError(reviewError, msg);
+      return;
+    }
+
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});
+
+btnBack.addEventListener("click", () => {
+  if (!pageReview.classList.contains("hidden")) {
+    setStep(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+});
+
 async function init() {
-  propsData = await (await fetch("./props.json")).json();
-  draftKey = `draft_${propsData.gameId}`;
+  // Remove the placeholders in header (you asked to remove them)
+  teamsLine.classList.add("hidden");
+  lockPill.classList.add("hidden");
+  teamsLine.textContent = "";
+  lockPill.textContent = "";
 
-  // eligibility optional
   try {
-    eligibility = await (await fetch("./eligibility.json")).json();
-  } catch {
-    eligibility = {};
-  }
+    // Robust URLs (prevents GitHub Pages path issues)
+    const propsUrl = new URL("./props.json", import.meta.url);
+    const eligUrl  = new URL("./eligibility.json", import.meta.url);
 
-  // config for lock + teams
-  const { data: cfg, error: cfgErr } = await supabase
-    .from("game_config")
-    .select("home_team,away_team,lock_enabled,lock_at")
-    .eq("game_id", propsData.gameId)
-    .maybeSingle();
+    const propsRes = await fetch(propsUrl);
+    if (!propsRes.ok) throw new Error(`props.json not found (${propsRes.status}). Put props.json beside index.html`);
+    propsData = await propsRes.json();
 
-  if (cfgErr || !cfg) {
-    teamsLine.textContent = "Config missing (check game_config).";
-    lockPill.innerHTML = `<b>Lock</b> unknown`;
-    config = null;
-    locked = false;
-  } else {
-    config = cfg;
+    draftKey = `draft_${propsData.gameId}`;
 
-    const home = cfg.home_team;
-    const away = cfg.away_team;
-    teamsLine.textContent = `${away} vs ${home}`;
-    tbTeamsHint.textContent = `Home = ${home}, Away = ${away}`;
+    try {
+      const eligRes = await fetch(eligUrl);
+      if (eligRes.ok) eligibility = await eligRes.json();
+    } catch { eligibility = {}; }
 
-    const lockAt = new Date(cfg.lock_at);
-    const now = new Date();
-    locked = cfg.lock_enabled && now >= lockAt;
+    // Load config (optional). If it fails, the site still works; you just won’t show teams/lock.
+    const { data: cfg } = await supabase
+      .from("game_config")
+      .select("home_team,away_team,lock_enabled,lock_at")
+      .eq("game_id", propsData.gameId)
+      .maybeSingle();
 
-    if (locked) {
-      lockPill.innerHTML = `<b>Locked</b> • picks closed`;
-      statusLine.innerHTML = `<span class="error">Picks are locked.</span>`;
-    } else if (cfg.lock_enabled) {
-      lockPill.innerHTML = `<b>Open</b> • locks at kickoff`;
-      statusLine.textContent = `Locks at: ${lockAt.toLocaleString()}`;
+    if (cfg) {
+      const lockAt = new Date(cfg.lock_at);
+      locked = cfg.lock_enabled && new Date() >= lockAt;
+
+      // (No loading text — either show real values or keep hidden)
+      teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
+      teamsLine.classList.remove("hidden");
+
+      lockPill.textContent = locked ? "Locked" : "Open";
+      lockPill.classList.remove("hidden");
+
+      tbTeamsHint.textContent = `Home = ${cfg.home_team}, Away = ${cfg.away_team}`;
+
+      if (locked) {
+        statusLine.innerHTML = `<span class="error">Picks are locked.</span>`;
+        disableAllInputs(true);
+      } else {
+        statusLine.textContent = `Picks open.`;
+      }
     } else {
-      lockPill.innerHTML = `<b>Open</b> • lock disabled`;
-      statusLine.textContent = "Lock disabled (testing).";
+      // keep header clean; show info in status area
+      statusLine.innerHTML = `<span class="small">Game config not found. (game_config row missing for game_id: ${propsData.gameId})</span>`;
     }
+
+    renderAllProps();
+  } catch (e) {
+    showError(formError, String(e?.message ?? e));
   }
-
-  renderAllProps();
-  loadDraft();
-
-  // autosave draft
-  document.addEventListener("change", () => saveDraft());
-  document.addEventListener("input", () => saveDraft());
-
-  // disable if locked
-  if (locked) disableAllInputs(true);
-
-  // navigation buttons
-  setStep(1);
-
-  btnNext.addEventListener("click", async () => {
-    if (locked) return;
-
-    if (!pagePicks.classList.contains("hidden")) {
-      const payload = validateAndCollect();
-      if (!payload) return;
-
-      buildReview(payload);
-      setStep(2);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    if (!pageReview.classList.contains("hidden")) {
-      const payload = validateAndCollect();
-      if (!payload) {
-        showError(reviewError, "Something changed—please fix missing fields before submitting.");
-        return;
-      }
-
-      clearError(reviewError);
-      btnNext.disabled = true;
-      btnBack.disabled = true;
-      btnNext.textContent = "Submitting…";
-
-      // insert (unique index ensures one submission per name per game)
-      const { error } = await supabase
-        .from("submissions")
-        .insert(
-          [{
-            game_id: propsData.gameId,
-            player_name: payload.player_name,
-            picks: payload.picks,
-            tiebreaker_home: payload.tiebreaker_home,
-            tiebreaker_away: payload.tiebreaker_away
-          }],
-          { returning: "minimal" }
-        );
-
-      if (error) {
-        // duplicate name (unique index) or lock policy violation
-        btnNext.disabled = false;
-        btnBack.disabled = false;
-        btnNext.textContent = "Confirm & submit";
-
-        const msg =
-          (error.code === "23505")
-            ? "That name already submitted picks for this game. Use the exact same name = not allowed (only first submission counts)."
-            : `Submit failed: ${error.message}`;
-
-        showError(reviewError, msg);
-        return;
-      }
-
-      clearDraft();
-      setStep(3);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-  });
-
-  btnBack.addEventListener("click", () => {
-    if (!pageReview.classList.contains("hidden")) {
-      setStep(1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  });
 }
 
 init();
