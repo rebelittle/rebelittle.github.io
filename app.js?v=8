@@ -267,28 +267,106 @@ function renderPropControl(prop) {
 
   let control = null;
 
- // Player props => dropdown of players
-const isPlayerPick =
-  prop.type === "player_anytime_td" ||
-  prop.type === "player_equals";
+  // 1) Player props => dropdown of all players (+ Other)
+  if (prop.type === "player_anytime_td" || prop.type === "player_equals") {
+    const teamRestriction = prop.teamRestriction || prop.team || null;
+    control = makePlayerSelectWithOther({
+      id: `pick_${prop.id}`,
+      teamRestriction,
+      placeholder: "Select player…"
+    });
+  }
 
-if (isPlayerPick) {
-  const teamRestriction = prop.teamRestriction || prop.team || null;
-  control = makePlayerSelectWithOther({
-    id: `pick_${prop.id}`,
-    teamRestriction,
-    placeholder: "Select player…"
-  });
-}
+  // 2) Over/Under props
+  else if (prop.type === "over_under") {
+    control = makeSelect({
+      id: `pick_${prop.id}`,
+      options: [
+        { value: "O", label: "Over" },
+        { value: "U", label: "Under" }
+      ],
+      placeholder: "Select Over/Under…"
+    });
+  }
+
+  // 3) Team pick props
+  else if (prop.type === "team_pick") {
+    const opts = (prop.options ?? []).map(t => ({ value: String(t), label: String(t) }));
+    control = makeSelect({
+      id: `pick_${prop.id}`,
+      options: opts,
+      placeholder: "Select…"
+    });
+  }
+
+  // 4) Spread props
+  else if (prop.type === "spread_pick") {
+    const opts = (prop.options ?? []).map(x => {
+      const sp = Number(x.spread);
+      const sign = sp >= 0 ? "+" : "";
+      return { value: x.team, label: `${x.team} ${sign}${sp}` };
+    });
+    control = makeSelect({
+      id: `pick_${prop.id}`,
+      options: opts,
+      placeholder: "Select side…"
+    });
+  }
+
+  // 5) YES-only boolean props
+  else if (prop.type === "yes_only_boolean") {
+    control = makeSelect({
+      id: `pick_${prop.id}`,
+      options: [
+        { value: "YES", label: "YES" },
+        { value: "NO", label: "NO (0 either way)" }
+      ],
+      placeholder: "Select…"
+    });
+  }
+
+  // 6) YES-only player-from-list (player dropdown, plus NONE and Other)
+  else if (prop.type === "yes_only_player_from_list") {
+    const noneLabel = prop.noneLabel ?? "NONE";
+    const wrap = document.createElement("div");
+    wrap.className = "grid2";
+
+    const sel = document.createElement("select");
+    sel.id = `pick_${prop.id}_select`;
+    sel.required = true;
+
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "Select…";
+    sel.appendChild(opt0);
+
+    const optNone = document.createElement("option");
+    optNone.value = noneLabel;
+    optNone.textContent = noneLabel;
+    sel.appendChild(optNone);
+
+    // add all players as options
+    for (const name of getAllPlayers()) {
+      const o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      sel.appendChild(o);
+    }
+
+    const otherValue = "__OTHER__";
+    const optOther = document.createElement("option");
+    optOther.value = otherValue;
+    optOther.textContent = "Other (type manually)";
+    sel.appendChild(optOther);
 
     const right = document.createElement("div");
-    const txt = makeOptionalText(`pick_${prop.id}_text`, "Enter player name…");
+    const txt = makeOptionalText(`pick_${prop.id}_text`, "Type player name…");
     right.appendChild(txt);
 
     function sync() {
-      const manual = sel.value === "TEXT";
-      right.classList.toggle("hidden", !manual);
-      txt.required = manual;
+      const isOther = sel.value === otherValue;
+      right.classList.toggle("hidden", !isOther);
+      txt.required = isOther;
     }
     sel.addEventListener("change", sync);
     sync();
@@ -299,7 +377,10 @@ if (isPlayerPick) {
     wrap.appendChild(left);
     wrap.appendChild(right);
     control = wrap;
-  } else if (prop.type === "restricted_anytime_td") {
+  }
+
+  // 7) Restricted anytime TD (eligibility list)
+  else if (prop.type === "restricted_anytime_td") {
     const listKey = prop.eligibleListKey;
     const list = Array.isArray(eligibility?.[listKey]) ? eligibility[listKey] : [];
     control = makeSelect({
@@ -307,7 +388,10 @@ if (isPlayerPick) {
       options: list.map(name => ({ value: name, label: name })),
       placeholder: "Select eligible player…"
     });
-  } else {
+  }
+
+  // 8) Fallback (manual)
+  else {
     control = renderSelectPlusText(prop);
   }
 
@@ -320,6 +404,7 @@ if (isPlayerPick) {
 
   return block;
 }
+
 
 function groupBySection(props) {
   const map = new Map();
@@ -361,17 +446,18 @@ if (prop.type === "player_anytime_td" || prop.type === "player_equals") {
   }
 
   if (prop.type === "yes_only_player_from_list") {
-    const sel = document.getElementById(`${baseId}_select`);
-    const txt = document.getElementById(`${baseId}_text`);
-    const v = sel?.value ?? "";
-    if (!v) return { ok:false, error:"Missing pick." };
-    if (v === "TEXT") {
-      const t = norm(txt?.value);
-      if (!t) return { ok:false, error:"Enter a player name." };
-      return { ok:true, value:t };
-    }
-    return { ok:true, value:v };
+  const sel = document.getElementById(`${baseId}_select`);
+  const txt = document.getElementById(`${baseId}_text`);
+  const v = sel?.value ?? "";
+  if (!v) return { ok:false, error:"Missing pick." };
+
+  if (v === "__OTHER__") {
+    const t = norm(txt?.value);
+    if (!t) return { ok:false, error:"Enter a player name." };
+    return { ok:true, value:t };
   }
+  return { ok:true, value:v };
+}
 
   const sel = document.getElementById(`${baseId}_select`);
   const txt = document.getElementById(`${baseId}_text`);
