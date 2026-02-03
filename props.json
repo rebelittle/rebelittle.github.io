@@ -1,1 +1,439 @@
+{
+  "gameId": "SB-2026",
+  "teams": {
+    "home": "Seahawks",
+    "away": "Patriots"
+  },
+  "tiebreaker": {
+    "id": "tb_final_score",
+    "label": "Final score prediction",
+    "type": "final_score",
+    "displayPoints": 10,
+    "countsTowardTotal": false,
+    "resultKey": "final"
+  },
+  "props": [
+    {
+      "id": "ml_winner",
+      "section": "THE SUPER BOWL",
+      "label": "Moneyline winner",
+      "type": "team_pick",
+      "points": 3,
+      "options": ["Patriots", "Seahawks"],
+      "resultKey": "final"
+    },
+    {
+      "id": "spread_winner",
+      "section": "THE SUPER BOWL",
+      "label": "Spread (Patriots +4.5 vs Seahawks -4.5)",
+      "type": "spread_pick",
+      "points": 3,
+      "options": [
+        { "team": "Patriots", "spread": 4.5 },
+        { "team": "Seahawks", "spread": -4.5 }
+      ],
+      "resultKey": "final"
+    },
+    {
+      "id": "game_total_ou",
+      "section": "THE SUPER BOWL",
+      "label": "Game total points",
+      "type": "over_under",
+      "line": 45.5,
+      "points": 3,
+      "resultKey": "final_total_points"
+    },
+
+    {
+      "id": "anytime_td_patriots",
+      "section": "TOUCHDOWNS",
+      "label": "Anytime TD scorer (Patriots)",
+      "type": "player_anytime_td",
+      "points": 1.5,
+      "team": "Patriots",
+      "resultKey": "td_scorers"
+    },
+    {
+      "id": "anytime_td_seahawks",
+      "section": "TOUCHDOWNS",
+      "label": "Anytime TD scorer (Seahawks)",
+      "type": "player_anytime_td",
+      "points": 1.5,
+      "team": "Seahawks",
+      "resultKey": "td_scorers"
+    },
+    {
+      "id": "first_td_patriots",
+      "section": "TOUCHDOWNS",
+      "label": "First TD scorer (Patriots)",
+      "type": "player_equals",
+      "points": 3,
+      "teamRestriction": "Patriots",
+      "resultKey": "first_td_scorer"
+    },
+    {
+      "id": "first_td_seahawks",
+      "section": "TOUCHDOWNS",
+      "label": "First TD scorer (Seahawks)",
+      "type": "player_equals",
+      "points": 3,
+      "teamRestriction": "Seahawks",
+      "resultKey": "first_td_scorer"
+    },
+
+    {
+      "id": "dm_passing_yards",
+      "section": "PLAYER O/U",
+      "label": "Drake Maye passing yards",
+      "type": "over_under",
+      "line": 220.5,
+      "points": 1,
+      "resultKey": "drake_maye_pass_yards"
+    },
+    {
+      "id": "sd_passing_yards",
+      "section": "PLAYER O/U",
+      "label": "Sam Darnold passing yards",
+      "type": "over_under",
+      "line": 229.5,
+      "points": 1,
+      "resultKey": "sam_darnold_pass_yards"
+    },
+    {
+      "id": "dm_pass_tds",
+      "section": "PLAYER O/U",
+      "label": "Drake Maye passing TDs",
+      "type": "over_under",
+      "line": 1.5,
+      "points": 1,
+      "resultKey": "drake_maye_pass_tds"
+    },
+    {
+      "id": "sd_pass_tds",
+      "section": "PLAYER O/U",
+      "label": "Sam Darnold passing TDs",
+      "type": "over_under",
+      "line": 1.5,
+      "points": 1,
+      "resultKey": "sam_darnold_pass_tds"
+    },
+    {
+      "id": "dm_ints",
+      "section": "PLAYER O/U",
+      "label": "Drake Maye interceptions",
+      "type": "over_under",
+      "line": 0.5,
+      "points": 1,
+      "resultKey": "drake_maye_ints"
+    },
+    {
+      "id": "sd_ints",
+      "section": "PLAYER O/U",
+      "label": "Sam Darnold interceptions",
+      "type": "over_under",
+      "line": 0.5,
+      "points": 1,
+      "resultKey": "sam_darnold_ints"
+    },
+    {
+      "id": "jsn_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Jaxson Smith-Njigba receiving yards",
+      "type": "over_under",
+      "line": 94.5,
+      "points": 1,
+      "resultKey": "jsn_rec_yards"
+    },
+    {
+      "id": "diggs_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Stefon Diggs receiving yards",
+      "type": "over_under",
+      "line": 44.5,
+      "points": 1,
+      "resultKey": "diggs_rec_yards"
+    },
+    {
+      "id": "henry_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Hunter Henry receiving yards",
+      "type": "over_under",
+      "line": 38.5,
+      "points": 1,
+      "resultKey": "henry_rec_yards"
+    },
+    {
+      "id": "kupp_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Cooper Kupp receiving yards",
+      "type": "over_under",
+      "line": 32.5,
+      "points": 1,
+      "resultKey": "kupp_rec_yards"
+    },
+    {
+      "id": "boutte_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Keyshon Boutte receiving yards",
+      "type": "over_under",
+      "line": 30.5,
+      "points": 1,
+      "resultKey": "boutte_rec_yards"
+    },
+    {
+      "id": "hollins_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Mack Hollins receiving yards",
+      "type": "over_under",
+      "line": 27.5,
+      "points": 1,
+      "resultKey": "hollins_rec_yards"
+    },
+    {
+      "id": "barner_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "AJ Barner receiving yards",
+      "type": "over_under",
+      "line": 25.5,
+      "points": 1,
+      "resultKey": "barner_rec_yards"
+    },
+    {
+      "id": "rham_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Rhamondre Stevenson receiving yards",
+      "type": "over_under",
+      "line": 23.5,
+      "points": 1,
+      "resultKey": "rham_rec_yards"
+    },
+    {
+      "id": "shaheed_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Rashid Shaheed receiving yards",
+      "type": "over_under",
+      "line": 22.5,
+      "points": 1,
+      "resultKey": "shaheed_rec_yards"
+    },
+    {
+      "id": "kw3_rec_yards",
+      "section": "PLAYER O/U",
+      "label": "Kenneth Walker receiving yards",
+      "type": "over_under",
+      "line": 22.5,
+      "points": 1,
+      "resultKey": "kw3_rec_yards"
+    },
+    {
+      "id": "rham_rush_yards",
+      "section": "PLAYER O/U",
+      "label": "Rhamondre Stevenson rushing yards",
+      "type": "over_under",
+      "line": 49.5,
+      "points": 1,
+      "resultKey": "rham_rush_yards"
+    },
+    {
+      "id": "dm_rush_yards",
+      "section": "PLAYER O/U",
+      "label": "Drake Maye rushing yards",
+      "type": "over_under",
+      "line": 37.5,
+      "points": 1,
+      "resultKey": "drake_maye_rush_yards"
+    },
+    {
+      "id": "henderson_rush_yards",
+      "section": "PLAYER O/U",
+      "label": "TreVeyon Henderson rushing yards",
+      "type": "over_under",
+      "line": 18.5,
+      "points": 1,
+      "resultKey": "henderson_rush_yards"
+    },
+    {
+      "id": "sd_rush_yards",
+      "section": "PLAYER O/U",
+      "label": "Sam Darnold rushing yards",
+      "type": "over_under",
+      "line": 6.5,
+      "points": 1,
+      "resultKey": "sam_darnold_rush_yards"
+    },
+    {
+      "id": "myers_fgs",
+      "section": "KICKERS",
+      "label": "Jason Meyers field goals made",
+      "type": "over_under",
+      "line": 1.5,
+      "points": 1,
+      "resultKey": "myers_fg_made"
+    },
+    {
+      "id": "borregales_fgs",
+      "section": "KICKERS",
+      "label": "Andres Borregales field goals made",
+      "type": "over_under",
+      "line": 1.5,
+      "points": 1,
+      "resultKey": "borregales_fg_made"
+    },
+
+    {
+      "id": "leading_passer",
+      "section": "LEADERS",
+      "label": "Leading passer",
+      "type": "player_equals",
+      "points": 1,
+      "resultKey": "leading_passer"
+    },
+    {
+      "id": "leading_rusher",
+      "section": "LEADERS",
+      "label": "Leading rusher",
+      "type": "player_equals",
+      "points": 1,
+      "resultKey": "leading_rusher"
+    },
+    {
+      "id": "leading_receiver",
+      "section": "LEADERS",
+      "label": "Leading receiver",
+      "type": "player_equals",
+      "points": 1,
+      "resultKey": "leading_receiver"
+    },
+
+    {
+      "id": "defensive_td_yesonly",
+      "section": "YES-ONLY",
+      "label": "Will either team record a defensive TD?",
+      "type": "yes_only_boolean",
+      "pointsCorrectYes": 3,
+      "pointsIncorrectYes": -1,
+      "pointsIfNo": 0,
+      "resultKey": "defensive_td"
+    },
+    {
+      "id": "two_plus_td_player",
+      "section": "YES-ONLY",
+      "label": "Pick a player to score 2+ TDs (or NONE)",
+      "type": "yes_only_player_from_list",
+      "pointsCorrectYes": 4,
+      "pointsIncorrectYes": -1,
+      "pointsIfNo": 0,
+      "noneLabel": "NONE",
+      "resultKey": "two_plus_td_scorers"
+    },
+    {
+      "id": "qb_catch_pass_yesonly",
+      "section": "YES-ONLY",
+      "label": "Will either QB catch a pass?",
+      "type": "yes_only_boolean",
+      "pointsCorrectYes": 3,
+      "pointsIncorrectYes": -1,
+      "pointsIfNo": 0,
+      "resultKey": "qb_catch_pass"
+    },
+    {
+      "id": "return_td_yesonly",
+      "section": "YES-ONLY",
+      "label": "Will there be a return TD?",
+      "type": "yes_only_boolean",
+      "pointsCorrectYes": 3,
+      "pointsIncorrectYes": -1,
+      "pointsIfNo": 0,
+      "resultKey": "return_td"
+    },
+
+    {
+      "id": "gatorade_color",
+      "section": "MISC",
+      "label": "Winning Gatorade color",
+      "type": "text_equals",
+      "points": 1,
+      "resultKey": "gatorade_color"
+    },
+    {
+      "id": "anthem_ou",
+      "section": "MISC",
+      "label": "National anthem length (seconds)",
+      "type": "over_under",
+      "line": 119.5,
+      "points": 1,
+      "resultKey": "anthem_seconds"
+    },
+    {
+      "id": "coin_toss",
+      "section": "MISC",
+      "label": "Coin toss winner",
+      "type": "team_pick",
+      "points": 1,
+      "options": ["Patriots", "Seahawks"],
+      "resultKey": "coin_toss_winner"
+    },
+
+    {
+      "id": "first_pats_reception",
+      "section": "MISC",
+      "label": "First Patriots reception",
+      "type": "player_equals",
+      "points": 2,
+      "resultKey": "first_patriots_reception"
+    },
+    {
+      "id": "first_seahawks_reception",
+      "section": "MISC",
+      "label": "First Seahawks reception",
+      "type": "player_equals",
+      "points": 2,
+      "resultKey": "first_seahawks_reception"
+    },
+    {
+      "id": "more_sacks",
+      "section": "MISC",
+      "label": "Which team has more sacks?",
+      "type": "team_pick",
+      "points": 1,
+      "options": ["Patriots", "Seahawks"],
+      "resultKey": "sacks"
+    },
+    {
+      "id": "turnover_battle",
+      "section": "MISC",
+      "label": "Which team wins the turnover battle?",
+      "type": "team_pick",
+      "points": 1.5,
+      "options": ["Patriots", "Seahawks"],
+      "resultKey": "turnovers"
+    },
+    {
+      "id": "first_half_winner",
+      "section": "MISC",
+      "label": "First half winner",
+      "type": "team_pick",
+      "points": 2,
+      "options": ["Patriots", "Seahawks", "TIE"],
+      "resultKey": "first_half"
+    },
+    {
+      "id": "mvp",
+      "section": "MISC",
+      "label": "Super Bowl MVP",
+      "type": "player_equals",
+      "points": 3,
+      "resultKey": "mvp"
+    },
+
+    {
+      "id": "unique_td_scorer",
+      "section": "SPECIAL",
+      "label": "Unique TD scorer (3 or less tds scored in the regular season)",
+      "type": "unique_td_scorer_group",
+      "points": 3,
+      "resultKey": "all_td_scorers"
+    }
+  ]
+}
 
