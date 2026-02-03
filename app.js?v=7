@@ -5,6 +5,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_Xl7ubx_C2vmH3cJXwt1BtQ_nTOA2I7t";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // === DOM ===
+const allPlayersCount = document.getElementById("allPlayersCount");
+const patsCount = document.getElementById("patsCount");
+const hawksCount = document.getElementById("hawksCount");
+const patsPlayersList = document.getElementById("patsPlayersList");
+const hawksPlayersList = document.getElementById("hawksPlayersList");
 const propsRoot = document.getElementById("propsRoot");
 const formError = document.getElementById("formError");
 const statusLine = document.getElementById("statusLine");
@@ -131,6 +136,112 @@ function renderSelectPlusText(prop) {
   wrap.appendChild(left);
   wrap.appendChild(right);
   return wrap;
+}
+let players = { Patriots: [], Seahawks: [] };
+
+function dedupeSort(arr) {
+  return [...new Set(arr.map(x => String(x).trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+}
+
+function getAllPlayers() {
+  return dedupeSort([...(players.Patriots ?? []), ...(players.Seahawks ?? [])]);
+}
+
+function renderPlayerLists() {
+  const pats = dedupeSort(players.Patriots ?? []);
+  const hawks = dedupeSort(players.Seahawks ?? []);
+  const all = getAllPlayers();
+
+  if (patsCount) patsCount.textContent = pats.length;
+  if (hawksCount) hawksCount.textContent = hawks.length;
+  if (allPlayersCount) allPlayersCount.textContent = `${all.length} total players`;
+
+  if (patsPlayersList) patsPlayersList.textContent = pats.join(", ");
+  if (hawksPlayersList) hawksPlayersList.textContent = hawks.join(", ");
+}
+
+function makePlayerSelectWithOther({ id, teamRestriction = null, placeholder = "Select player…" }) {
+  // Builds a dropdown of players + an optional text input (only shown when "Other" selected)
+  const wrap = document.createElement("div");
+  wrap.className = "grid2";
+
+  const sel = document.createElement("select");
+  sel.id = `${id}_select`;
+  sel.required = true;
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = placeholder;
+  sel.appendChild(opt0);
+
+  const otherValue = "__OTHER__";
+
+  const addOpt = (value, label) => {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    sel.appendChild(o);
+  };
+
+  const addGroup = (label, list) => {
+    const g = document.createElement("optgroup");
+    g.label = label;
+    for (const name of list) {
+      const o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      g.appendChild(o);
+    }
+    sel.appendChild(g);
+  };
+
+  const pats = dedupeSort(players.Patriots ?? []);
+  const hawks = dedupeSort(players.Seahawks ?? []);
+
+  if (teamRestriction === "Patriots") addGroup("Patriots", pats);
+  else if (teamRestriction === "Seahawks") addGroup("Seahawks", hawks);
+  else {
+    addGroup("Patriots", pats);
+    addGroup("Seahawks", hawks);
+  }
+
+  addOpt(otherValue, "Other (type manually)");
+
+  const txtWrap = document.createElement("div");
+  const txt = document.createElement("input");
+  txt.type = "text";
+  txt.id = `${id}_text`;
+  txt.placeholder = "Type player name…";
+  txt.required = false;
+  txtWrap.appendChild(txt);
+
+  function sync() {
+    const isOther = sel.value === otherValue;
+    txtWrap.classList.toggle("hidden", !isOther);
+    txt.required = isOther;
+  }
+  sel.addEventListener("change", sync);
+  sync();
+
+  const left = document.createElement("div");
+  left.appendChild(sel);
+
+  wrap.appendChild(left);
+  wrap.appendChild(txtWrap);
+  return wrap;
+}
+
+function readPlayerSelectValue(baseId) {
+  const sel = document.getElementById(`${baseId}_select`);
+  const txt = document.getElementById(`${baseId}_text`);
+  const v = sel?.value ?? "";
+  if (!v) return { ok: false, error: "Missing pick." };
+  if (v === "__OTHER__") {
+    const t = String(txt?.value ?? "").trim();
+    if (!t) return { ok: false, error: "Enter a player name." };
+    return { ok: true, value: t };
+  }
+  return { ok: true, value: v };
 }
 
 function renderPropControl(prop) {
