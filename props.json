@@ -235,6 +235,15 @@
       "resultKey": "rham_rush_yards"
     },
     {
+      "id": "kw3_rush_yards",
+      "section": "PLAYER O/U",
+      "label": "Kenneth Walker III rushing yards",
+      "type": "over_under",
+      "line": 73.5,
+      "points": 1,
+      "resultKey": "kw3_rush_yards"
+    },
+    {
       "id": "dm_rush_yards",
       "section": "PLAYER O/U",
       "label": "Drake Maye rushing yards",
@@ -395,7 +404,7 @@
       "section": "MISC",
       "label": "Which team has more sacks?",
       "type": "team_pick",
-      "points": 1,
+      "points": 1.5,
       "options": ["Patriots", "Seahawks"],
       "resultKey": "sacks"
     },
