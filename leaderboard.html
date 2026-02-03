@@ -4,11 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Leaderboard</title>
+
+  <!-- BUILD: leaderboard v12 -->
   <style>
     :root{
       --bg:#0b0c10; --card:#12141c; --muted:#9aa4b2; --text:#e9edf2; --border:#23283a;
       --shadow: 0 10px 30px rgba(0,0,0,.35); --radius:16px; --accent:#60a5fa;
       --bad:#fb7185;
+      --gold: rgba(212,175,55,.22);
+      --silver: rgba(192,192,192,.22);
+      --bronze: rgba(205,127,50,.22);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#07080c,#0b0c10);color:var(--text)}
@@ -19,11 +24,14 @@
     h1{margin:0;font-size:1.35rem}
     .muted{color:var(--muted);font-size:.95rem}
     .err{color:var(--bad);font-size:.95rem}
+    .badge{border:1px solid var(--border);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:.85rem}
+    button{border:1px solid var(--border);background:#101522;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}
     table{width:100%;border-collapse:collapse}
     th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(35,40,58,.65);vertical-align:top}
     th{color:var(--muted);font-weight:700;font-size:.9rem}
-    .badge{border:1px solid var(--border);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:.85rem}
-    button{border:1px solid var(--border);background:#101522;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}
+    tr.rank1 td{background: var(--gold)}
+    tr.rank2 td{background: var(--silver)}
+    tr.rank3 td{background: var(--bronze)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
@@ -40,22 +48,24 @@
           <button id="refreshBtn">Refresh</button>
         </div>
       </div>
-      <div class="muted" style="margin-top:8px" id="rlsHint"></div>
+      <div class="muted" style="margin-top:8px" id="hint"></div>
     </div>
 
     <div class="card">
       <div class="row" style="margin-bottom:10px;">
         <div class="badge" id="countBadge">0 entries</div>
-        <div class="muted" id="note">Shows entries from Supabase.</div>
+        <div class="muted" id="note"></div>
       </div>
+
       <div style="overflow:auto;">
         <table>
           <thead>
             <tr>
               <th style="width:70px;">#</th>
               <th>Name</th>
+              <th style="width:120px;">Points</th>
+              <th style="width:140px;">Tiebreak</th>
               <th style="width:220px;">Submitted</th>
-              <th style="width:180px;">Tiebreaker</th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -64,6 +74,6 @@
     </div>
   </div>
 
-  <script type="module" src="./leaderboard.js?v=1"></script>
+  <script type="module" src="./leaderboard.js?v=12"></script>
 </body>
 </html>
