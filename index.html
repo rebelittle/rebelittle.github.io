@@ -1,36 +1,63 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Super Bowl Prop Sheet</title>
   <style>
-    body { font-family: system-ui, Arial; max-width: 900px; margin: 24px auto; padding: 0 16px; }
-    .prop { border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 10px 0; }
-    .row { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
-    .muted { color:#666; font-size: 0.95rem; }
-    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #111; background:#111; color:#fff; cursor:pointer; }
-    input[type="text"] { padding: 10px; border-radius: 10px; border:1px solid #ccc; width: 280px; }
-  </style>
-</head>
-<body>
-  <h1>Prop Sheet</h1>
-  <p class="muted">Pick Over/Under for each line. Your score updates on the leaderboard after results are entered.</p>
-
-  <div class="row">
-    <label>
-      Your name:
-      <input id="playerName" type="text" placeholder="e.g., Reagan" />
-    </label>
-    <a href="./leaderboard.html">View leaderboard</a>
-  </div>
-
-  <form id="propForm">
-    <div id="props"></div>
-    <button type="submit">Submit picks</button>
-    <p id="status" class="muted"></p>
-  </form>
-
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
+    :root{
+      --bg:#0b0c10;
+      --card:#12141c;
+      --muted:#9aa4b2;
+      --text:#e9edf2;
+      --border:#23283a;
+      --good:#2dd4bf;
+      --bad:#fb7185;
+      --accent:#60a5fa;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #07080c, #0b0c10);
+      color:var(--text);
+    }
+    a{color:var(--accent); text-decoration:none}
+    .wrap{max-width: 980px; margin:0 auto; padding: 18px 14px 120px;}
+    header{
+      position: sticky; top:0; z-index:10;
+      background: rgba(11,12,16,.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(35,40,58,.7);
+    }
+    .hdr{
+      max-width: 980px; margin:0 auto; padding: 14px;
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
+    }
+    .title h1{margin:0; font-size: 1.25rem; letter-spacing: .2px;}
+    .title .sub{color:var(--muted); font-size:.95rem; margin-top:4px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      background: rgba(18,20,28,.7);
+      padding:8px 10px; border-radius: 999px;
+      font-size:.9rem; color: var(--muted);
+      white-space:nowrap;
+    }
+    .pill b{color:var(--text)}
+    .card{
+      background: rgba(18,20,28,.8);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin: 12px 0;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @m
