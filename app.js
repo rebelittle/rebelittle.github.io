@@ -15,6 +15,8 @@ const formError = document.getElementById("formError");
 const statusLine = document.getElementById("statusLine");
 const tiebreakerCard = document.getElementById("tiebreakerCard");
 const playerListsCard = document.getElementById("playerListsCard");
+const entryCard = document.getElementById("entryCard");
+
 
 
 const teamsLine = document.getElementById("teamsLine");
@@ -47,6 +49,7 @@ let draftKey = null;
 
 function hidePickUI() {
   // Hide anything that looks like a form
+  if (entryCard) entryCard.classList.add("hidden");  
   if (tiebreakerCard) tiebreakerCard.classList.add("hidden");
   if (playerListsCard) playerListsCard.classList.add("hidden");
 
