@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+const SUPABASE_URL = "https://qtyifatnegjjzkcnzqrw.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Xl7ubx_C2vmH3cJXwt1BtQ_nTOA2I7t";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const propsDiv = document.getElementById("props");
