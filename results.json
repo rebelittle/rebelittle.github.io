@@ -1,1 +1,61 @@
+{
+  "final": { "Patriots": 0, "Seahawks": 0 },
+  "final_total_points": 0,
+
+  "td_scorers": {
+    "Patriots": [],
+    "Seahawks": []
+  },
+  "all_td_scorers": [],
+
+  "first_td_scorer": { "player": "", "team": "" },
+
+  "drake_maye_pass_yards": 0,
+  "sam_darnold_pass_yards": 0,
+  "drake_maye_pass_tds": 0,
+  "sam_darnold_pass_tds": 0,
+  "drake_maye_ints": 0,
+  "sam_darnold_ints": 0,
+
+  "jsn_rec_yards": 0,
+  "diggs_rec_yards": 0,
+  "henry_rec_yards": 0,
+  "kupp_rec_yards": 0,
+  "boutte_rec_yards": 0,
+  "hollins_rec_yards": 0,
+  "barner_rec_yards": 0,
+  "rham_rec_yards": 0,
+  "shaheed_rec_yards": 0,
+  "kw3_rec_yards": 0,
+
+  "rham_rush_yards": 0,
+  "drake_maye_rush_yards": 0,
+  "henderson_rush_yards": 0,
+  "sam_darnold_rush_yards": 0,
+
+  "myers_fg_made": 0,
+  "borregales_fg_made": 0,
+
+  "leading_passer": "",
+  "leading_rusher": "",
+  "leading_receiver": "",
+
+  "defensive_td": false,
+  "two_plus_td_scorers": [],
+  "qb_catch_pass": false,
+  "return_td": false,
+
+  "gatorade_color": "",
+  "anthem_seconds": 0,
+  "coin_toss_winner": "",
+
+  "first_patriots_reception": "",
+  "first_seahawks_reception": "",
+
+  "sacks": { "Patriots": 0, "Seahawks": 0 },
+  "turnovers": { "Patriots": 0, "Seahawks": 0 },
+  "first_half": { "Patriots": 0, "Seahawks": 0 },
+
+  "mvp": ""
+}
 
