@@ -60,4 +60,228 @@
       grid-template-columns: 1fr;
       gap: 10px;
     }
-    @m
+    @media (min-width: 780px){
+      .title h1{font-size: 1.55rem;}
+      .grid2{grid-template-columns: 1fr 1fr;}
+    }
+    label{display:block; font-size:.9rem; color: var(--muted); margin-bottom:6px}
+    input[type="text"], input[type="number"], select{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: #0f1118;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+    input:disabled, select:disabled{opacity:.55}
+    .row{
+      display:flex; gap:10px; align-items:center; flex-wrap: wrap;
+    }
+    .btnbar{
+      position: fixed;
+      left:0; right:0; bottom:0;
+      background: rgba(11,12,16,.92);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(35,40,58,.8);
+      padding: 12px 14px;
+      z-index: 20;
+    }
+    .btnbar .inner{
+      max-width: 980px; margin:0 auto;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+    }
+    .btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background: #101522;
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 650;
+      font-size: 1rem;
+      width: 100%;
+    }
+    .btn.primary{
+      background: linear-gradient(180deg, #1f6feb, #1d4ed8);
+      border-color: rgba(96,165,250,.35);
+    }
+    .btn.ghost{
+      background: transparent;
+    }
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .stepper{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin: 12px 0 6px;
+    }
+    .step{
+      padding: 8px 10px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: .9rem;
+      background: rgba(18,20,28,.6);
+    }
+    .step.active{color: var(--text); border-color: rgba(96,165,250,.45)}
+    .sectionHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin: 16px 0 8px;
+    }
+    .sectionHead h2{margin:0; font-size: 1.05rem}
+    .small{color:var(--muted); font-size:.92rem}
+    details{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(18,20,28,.65);
+      margin: 10px 0;
+      overflow:hidden;
+    }
+    summary{
+      cursor:pointer;
+      padding: 14px;
+      list-style:none;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      font-weight: 700;
+    }
+    summary::-webkit-details-marker{display:none}
+    .badge{
+      color: var(--muted);
+      border:1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .85rem;
+      font-weight: 650;
+      white-space:nowrap;
+    }
+    .prop{
+      padding: 12px 14px;
+      border-top: 1px solid rgba(35,40,58,.75);
+    }
+    .propTitle{
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .propTitle b{font-size: 1rem}
+    .propTitle .meta{color:var(--muted); font-size:.9rem}
+    .inlineHelp{color:var(--muted); font-size:.9rem; margin-top: 8px}
+    .error{
+      color: var(--bad);
+      font-size: .9rem;
+      margin-top: 8px;
+    }
+    .ok{
+      color: var(--good);
+      font-size: .95rem;
+    }
+    .hidden{display:none !important}
+    .reviewItem{
+      padding: 12px 14px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(18,20,28,.55);
+      margin: 10px 0;
+    }
+    .reviewItem .k{color: var(--muted); font-size: .9rem}
+    .reviewItem .v{font-weight: 750; margin-top: 4px}
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="hdr">
+      <div class="title">
+        <h1>Super Bowl Prop Sheet</h1>
+        <div class="sub" id="teamsLine">Loading teams…</div>
+      </div>
+      <div class="pill" id="lockPill">Loading lock…</div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="stepper">
+      <div class="step active" id="step1">1) Make picks</div>
+      <div class="step" id="step2">2) Review</div>
+      <div class="step" id="step3">3) Submitted</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <section id="pagePicks">
+      <div class="card">
+        <div class="grid2">
+          <div>
+            <label for="playerName">Your name (used to prevent duplicate entries)</label>
+            <input id="playerName" type="text" placeholder="Write your fuckin name down" autocomplete="name" />
+            <div class="inlineHelp">Tip: use a consistent name (first name + last initial works best).</div>
+          </div>
+          <div>
+            <label>Links</label>
+            <div class="row">
+              <a href="./leaderboard.html">Leaderboard</a>
+            </div>
+            <div class="inlineHelp" id="statusLine"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="tiebreakerCard">
+        <div class="propTitle">
+          <div>
+            <b>Tiebreaker: Final score prediction</b>
+            <div class="meta">Used to break ties (points shown on sheet)</div>
+          </div>
+          <div class="badge" id="tbPoints">10 pts</div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="tbHome">Home score</label>
+            <input id="tbHome" type="number" min="0" max="99" inputmode="numeric" placeholder="e.g., 27" />
+          </div>
+          <div>
+            <label for="tbAway">Away score</label>
+            <input id="tbAway" type="number" min="0" max="99" inputmode="numeric" placeholder="e.g., 24" />
+          </div>
+        </div>
+        <div class="inlineHelp" id="tbTeamsHint"></div>
+      </div>
+
+      <div id="propsRoot"></div>
+      <div class="error hidden" id="formError"></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="pageReview" class="hidden">
+      <div class="card">
+        <div class="sectionHead">
+          <h2>Review your picks</h2>
+          <span class="small">Nothing is submitted until you confirm.</span>
+        </div>
+        <div id="reviewList"></div>
+        <div class="error hidden" id="reviewError"></div>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="pageDone" class="hidden">
+      <div class="card">
+        <h2 style="margin:0 0 10px;">Submitted ✅</h2>
+        <div class="small">Your picks are recorded. If you used the same name twice, only the first submission counts.</div>
+        <div style="margin-top:14px;">
+          <a href="./leaderboard.html">Go to leaderboard</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="btnbar">
+    <div class="inner">
+      <button class="btn ghost hidden" id="btnBack">Back</button>
+      <button class="btn primary" id="btnNext">Review picks</button>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
