@@ -15,10 +15,10 @@ function norm(s){ return String(s ?? "").trim(); }
 function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
 
 function scoreOverUnder(pickOU, line, actual) {
-  if (typeof actual !== "number" || typeof line !== "number") return { pts: 0, info: "no stat" };
-  if (actual === line) return { pts: 0, info: "push" };
+  if (typeof actual !== "number" || typeof line !== "number") return 0;
+  if (actual === line) return 0; // push
   const correct = actual > line ? "O" : "U";
-  return { pts: pickOU === correct ? 1 : 0, info: correct };
+  return pickOU === correct ? 1 : 0;
 }
 
 function computeTiebreakPoints(pred, final, maxPts = 10) {
@@ -39,42 +39,34 @@ function getOutcomeKey(prop) {
 function scoreProp(prop, pick, results, eligibility) {
   if (pick == null || pick === "") return 0;
 
-  // Over/under numeric
   if (prop.type === "over_under") {
     const actual = results?.stats?.[getOutcomeKey(prop)];
     const line = Number(prop.line);
-    const out = scoreOverUnder(pick, line, actual);
-    // Use prop.points if provided; else default 1
     const unit = Number(prop.points ?? 1);
-    return out.pts ? unit : 0;
+    return scoreOverUnder(pick, line, actual) ? unit : 0;
   }
 
-  // Standard exact-match (team pick / spread pick / player equals)
   if (prop.type === "team_pick" || prop.type === "spread_pick" || prop.type === "player_equals") {
     const correct = results?.answers?.[getOutcomeKey(prop)];
     if (!correct || correct === "PUSH") return 0;
     return (String(pick) === String(correct)) ? Number(prop.points ?? 0) : 0;
   }
 
-  // Anytime TD scorer (many valid answers): check membership in all_td_scorers list
   if (prop.type === "player_anytime_td") {
     const listKey = prop.resultKey || "all_td_scorers";
     const scorers = results?.lists?.[listKey] || results?.lists?.all_td_scorers || [];
     return scorers.includes(pick) ? Number(prop.points ?? 0) : 0;
   }
 
-  // Restricted anytime TD (Unique TD scorer): must be in eligibility list AND in TD scorers
   if (prop.type === "restricted_anytime_td") {
     const eligKey = prop.eligibleListKey;
     const eligList = (eligKey && eligibility?.[eligKey]) ? eligibility[eligKey] : null;
     const scorers = results?.lists?.[prop.resultKey || "all_td_scorers"] || results?.lists?.all_td_scorers || [];
-
     const okElig = eligList ? eligList.includes(pick) : true;
     const okTD = scorers.includes(pick);
     return (okElig && okTD) ? Number(prop.points ?? 0) : 0;
   }
 
-  // YES-only booleans (YES can be +points or -points; NO always 0)
   if (prop.type === "yes_only_boolean") {
     const occurred = results?.answers?.[getOutcomeKey(prop)]; // "YES" / "NO"
     if (pick !== "YES") return 0;
@@ -83,7 +75,6 @@ function scoreProp(prop, pick, results, eligibility) {
     return 0;
   }
 
-  // YES-only player-from-list (ex: 2+ TD player). NONE always 0.
   if (prop.type === "yes_only_player_from_list") {
     const noneLabel = prop.noneLabel ?? "NONE";
     if (pick === noneLabel) return 0;
@@ -97,7 +88,6 @@ function scoreProp(prop, pick, results, eligibility) {
     return correct ? ptsYes : ptsNo;
   }
 
-  // Fallback: exact match if results.answers has an entry
   const correct = results?.answers?.[getOutcomeKey(prop)];
   if (correct && correct !== "PUSH") {
     return (String(pick) === String(correct)) ? Number(prop.points ?? 0) : 0;
@@ -106,23 +96,19 @@ function scoreProp(prop, pick, results, eligibility) {
   return 0;
 }
 
-function scoreSubmission(sub, propsData, results, eligibility) {
+function scoreSubmission(subWithPicks, propsData, results, eligibility) {
   let total = 0;
 
   for (const prop of propsData.props) {
-    const pick = sub.picks?.[prop.id];
+    const pick = subWithPicks.picks?.[prop.id];
     total += scoreProp(prop, pick, results, eligibility);
   }
 
-  // Tiebreaker points + diff (stored inside picks)
-  const tb = sub.picks?._tiebreaker_final_score;
+  const tb = subWithPicks.picks?._tiebreaker_final_score;
   const tbRes = computeTiebreakPoints(tb, results?.final, 10);
   total += tbRes.pts;
 
-  return {
-    total,
-    tbDiff: tbRes.diff
-  };
+  return { total, tbDiff: tbRes.diff };
 }
 
 async function loadJson(url) {
@@ -138,53 +124,89 @@ async function load() {
   note.textContent = "";
   hint.textContent = "";
 
-  // Load props.json (gameId + prop list)
+  // props.json
   let propsData;
   try {
     propsData = await loadJson(new URL("./props.json", import.meta.url));
-  } catch (e) {
+  } catch {
     subline.textContent = "Could not load props.json";
     rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error loading props.json</td></tr>`;
     return;
   }
-
-  // Load results.json (needed for scoring)
-  let results = null;
-  try {
-    results = await loadJson(new URL("./results.json", import.meta.url));
-  } catch {
-    results = null;
-  }
-
-  // Eligibility is optional (used for unique TD scorer restriction)
-  let eligibility = {};
-  try {
-    eligibility = await loadJson(new URL("./eligibility.json", import.meta.url));
-  } catch {
-    eligibility = {};
-  }
-
   subline.textContent = `Game: ${propsData.gameId}`;
 
-  // Fetch submissions (this requires your "public read after lock" policy to be allowing SELECT right now)
-  const { data, error } = await supabase
+  // results.json (optional; needed for points)
+  let results = null;
+  try { results = await loadJson(new URL("./results.json", import.meta.url)); }
+  catch { results = null; }
+
+  // eligibility.json (optional)
+  let eligibility = {};
+  try { eligibility = await loadJson(new URL("./eligibility.json", import.meta.url)); }
+  catch { eligibility = {}; }
+
+  // lock status
+  const { data: cfg } = await supabase
+    .from("game_config")
+    .select("lock_enabled, lock_at")
+    .eq("game_id", propsData.gameId)
+    .maybeSingle();
+
+  const locked = !!(cfg?.lock_enabled && new Date() >= new Date(cfg.lock_at));
+
+  // ALWAYS fetch entry list (no picks)
+  const { data: entries, error: e1 } = await supabase
     .from("submissions")
-    .select("player_name, created_at, picks, game_id")
+    .select("id, player_name, created_at, game_id")
     .eq("game_id", propsData.gameId);
 
-  if (error) {
-    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error: ${error.message}</td></tr>`;
-    note.textContent = "If you can insert but can’t read here, RLS is blocking SELECT for anon.";
-    hint.textContent = "Confirm lock_at has passed and your SELECT policy condition matches.";
+  if (e1) {
+    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error: ${e1.message}</td></tr>`;
+    note.textContent = "Check RLS/permissions for submissions select.";
     return;
   }
 
-  if (!results || results.gameId !== propsData.gameId) {
-    // No results yet → show entries but no scores
-    countBadge.textContent = `${data.length} entries`;
-    note.textContent = "Results not posted yet (missing results.json). Showing entries only.";
+  countBadge.textContent = `${entries.length} entries`;
 
-    rowsEl.innerHTML = data
+  // If NOT locked: show entries only; hide points + tiebreak
+  if (!locked) {
+    note.textContent = "Entries are visible. Picks/points are hidden until lock.";
+    rowsEl.innerHTML = entries
+      .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
+      .map((s, i) => {
+        const dt = new Date(s.created_at);
+        const when = isNaN(dt.getTime()) ? String(s.created_at) : dt.toLocaleString();
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${norm(s.player_name)}</td>
+            <td class="mono">—</td>
+            <td class="mono">Locked</td>
+            <td>${when}</td>
+          </tr>
+        `;
+      }).join("");
+    return;
+  }
+
+  // LOCKED: fetch picks via RPC (server-gated)
+  const { data: fullRows, error: e2 } = await supabase
+    .rpc("get_submissions_after_lock", { p_game_id: propsData.gameId });
+
+  if (e2) {
+    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error: ${e2.message}</td></tr>`;
+    note.textContent = "Locked, but could not fetch picks via RPC. Check the function and grants.";
+    return;
+  }
+
+  // Merge picks into entries by id
+  const picksById = new Map(fullRows.map(r => [r.id, r.picks]));
+  const merged = entries.map(e => ({ ...e, picks: picksById.get(e.id) || null }));
+
+  // If results missing: show entries + tiebreak, but no points
+  if (!results || results.gameId !== propsData.gameId) {
+    note.textContent = "Locked. Picks are visible. Results not posted yet (missing results.json), so points are hidden.";
+    rowsEl.innerHTML = merged
       .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
       .map((s, i) => {
         const dt = new Date(s.created_at);
@@ -204,24 +226,21 @@ async function load() {
     return;
   }
 
-  // Score + sort
-  const scored = data.map(s => {
+  // RESULTS PRESENT: score + sort + medals
+  const scored = merged.map(s => {
     const res = scoreSubmission(s, propsData, results, eligibility);
     return { ...s, points: res.total, tbDiff: res.tbDiff };
   });
 
   scored.sort((a,b) => {
     if (b.points !== a.points) return b.points - a.points;
-    // tiebreak: smaller diff wins if available
     const ad = (a.tbDiff == null) ? 1e9 : a.tbDiff;
     const bd = (b.tbDiff == null) ? 1e9 : b.tbDiff;
     if (ad !== bd) return ad - bd;
-    // final tie: earliest submission wins
     return new Date(a.created_at) - new Date(b.created_at);
   });
 
-  countBadge.textContent = `${scored.length} entries`;
-  note.textContent = "Sorted by points (desc). Ties broken by tiebreaker closeness.";
+  note.textContent = "Locked. Sorted by points (desc). Ties broken by tiebreaker closeness.";
 
   rowsEl.innerHTML = scored.map((s, idx) => {
     const rank = idx + 1;
@@ -249,3 +268,4 @@ async function load() {
 
 refreshBtn.addEventListener("click", load);
 load();
+
