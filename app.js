@@ -13,6 +13,9 @@ const hawksPlayersList = document.getElementById("hawksPlayersList");
 const propsRoot = document.getElementById("propsRoot");
 const formError = document.getElementById("formError");
 const statusLine = document.getElementById("statusLine");
+const tiebreakerCard = document.getElementById("tiebreakerCard");
+const playerListsCard = document.getElementById("playerListsCard");
+
 
 const teamsLine = document.getElementById("teamsLine");
 const lockPill = document.getElementById("lockPill");
@@ -56,6 +59,52 @@ function setStep(n) {
 
   btnNext.textContent = (n === 2) ? "Confirm & submit" : "Review picks";
 }
+function hideAllPickUI() {
+  // hide everything pick-related
+  if (tiebreakerCard) tiebreakerCard.classList.add("hidden");
+  if (playerListsCard) playerListsCard.classList.add("hidden");
+
+  if (propsRoot) {
+    propsRoot.innerHTML = "";
+    propsRoot.classList.add("hidden");
+  }
+
+  // hide bottom buttons so it doesn't look "fillable"
+  if (btnNext) btnNext.classList.add("hidden");
+  if (btnBack) btnBack.classList.add("hidden");
+}
+
+function showLockedCard(lockAt) {
+  // create once
+  if (document.getElementById("lockedCard")) return;
+
+  const card = document.createElement("div");
+  card.id = "lockedCard";
+  card.className = "card";
+
+  const when = lockAt ? new Date(lockAt).toLocaleString() : "";
+  card.innerHTML = `
+    <h2 style="margin:0 0 8px;">Picks are locked 🔒</h2>
+    <div class="small">${when ? `Picks closed at ${when}.` : "Picks are closed."}</div>
+    <div style="margin-top:12px;"><a href="./leaderboard.html">Go to leaderboard</a></div>
+  `;
+
+  // insert above where picks would normally appear
+  const anchor = tiebreakerCard || playerListsCard || propsRoot;
+  if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(card, anchor);
+  else pagePicks.appendChild(card);
+}
+
+function showPickUI() {
+  // if unlocked, make sure stuff is visible again
+  if (tiebreakerCard) tiebreakerCard.classList.remove("hidden");
+  if (playerListsCard) playerListsCard.classList.remove("hidden");
+  if (propsRoot) propsRoot.classList.remove("hidden");
+  if (btnNext) btnNext.classList.remove("hidden");
+  // btnBack stays hidden unless you go to review
+}
+
+
 
 function showError(el, msg) {
   el.textContent = msg;
@@ -673,29 +722,33 @@ try {
       .maybeSingle();
 
     if (cfg) {
-      const lockAt = new Date(cfg.lock_at);
-      locked = cfg.lock_enabled && new Date() >= lockAt;
+  const lockAt = new Date(cfg.lock_at);
+  locked = cfg.lock_enabled && new Date() >= lockAt;
 
-      // (No loading text — either show real values or keep hidden)
-      teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
-      teamsLine.classList.remove("hidden");
+  teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
+  teamsLine.classList.remove("hidden");
 
-      lockPill.textContent = locked ? "Locked" : "Open";
-      lockPill.classList.remove("hidden");
+  lockPill.textContent = locked ? "Locked" : "Open";
+  lockPill.classList.remove("hidden");
 
-      tbTeamsHint.textContent = `Home = ${cfg.home_team}, Away = ${cfg.away_team}`;
+  tbTeamsHint.textContent = `Home = ${cfg.home_team}, Away = ${cfg.away_team}`;
 
-      if (locked) {
-        statusLine.innerHTML = `<span class="error">Picks are locked.</span>`;
-        disableAllInputs(true);
-      } else {
-        statusLine.textContent = `Picks open.`;
-      }
-    } else {
-      // keep header clean; show info in status area
-      statusLine.innerHTML = `<span class="small">Game config not found. (game_config row missing for game_id: ${propsData.gameId})</span>`;
-    }
+  if (locked) {
+    statusLine.innerHTML = `<span class="error">Picks are locked.</span>`;
+    disableAllInputs(true);
 
+    // NEW: hide all props/tiebreaker/player lists
+    showLockedCard(cfg.lock_at);
+    hideAllPickUI();
+    return; // IMPORTANT: do not render props
+  } else {
+    statusLine.textContent = `Picks open.`;
+    showPickUI();
+  }
+} else {
+  statusLine.innerHTML = `<span class="small">Game config not found. (game_config row missing for game_id: ${propsData.gameId})</span>`;
+  showPickUI();
+}
     renderAllProps();
   } catch (e) {
     showError(formError, String(e?.message ?? e));
