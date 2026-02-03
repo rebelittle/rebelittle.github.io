@@ -350,6 +350,10 @@ function renderAllProps() {
 function getPropPickValue(prop) {
   const baseId = `pick_${prop.id}`;
 
+if (prop.type === "player_anytime_td" || prop.type === "player_equals") {
+  return readPlayerSelectValue(`pick_${prop.id}`);
+}
+
   if (["over_under","team_pick","spread_pick","yes_only_boolean","restricted_anytime_td"].includes(prop.type)) {
     const v = document.getElementById(baseId)?.value ?? "";
     if (!v) return { ok:false, error:"Missing pick." };
