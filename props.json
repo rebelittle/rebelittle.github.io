@@ -431,7 +431,7 @@
       "section": "SPECIAL",
       "label": "Unique TD scorer (3 or less tds scored in the regular season)",
       "type": "restricted_anytime_td",
-      "points": 3
+      "points": 3,
       "eligibleListKey": "low_td_players",
       "resultKey": "all_td_scorers"
     }
