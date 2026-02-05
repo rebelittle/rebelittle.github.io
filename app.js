@@ -1,3 +1,7 @@
+console.log("app.js loaded");
+window.addEventListener("error", e => console.log("JS error:", e.message));
+window.addEventListener("unhandledrejection", e => console.log("Promise rejection:", e.reason));
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = "https://qtyifatnegjjzkcnzqrw.supabase.co";
