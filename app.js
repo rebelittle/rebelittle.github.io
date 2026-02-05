@@ -732,10 +732,15 @@ btnBack.addEventListener("click", () => {
 
 async function init() {
   // Remove the placeholders in header (you asked to remove them)
+ if (teamsLine) {
   teamsLine.classList.add("hidden");
-  lockPill.classList.add("hidden");
   teamsLine.textContent = "";
+}
+if (lockPill) {
+  lockPill.classList.add("hidden");
   lockPill.textContent = "";
+}
+
 
   try {
     // Robust URLs (prevents GitHub Pages path issues)
@@ -773,11 +778,14 @@ try {
   locked = cfg.lock_enabled && new Date() >= lockAt;
 
   // Show real header info
-  teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
-  teamsLine.classList.remove("hidden");
-
-  lockPill.textContent = locked ? "Locked" : "Open";
-  lockPill.classList.remove("hidden");
+  if (teamsLine) {
+    teamsLine.textContent = `${cfg.away_team} vs ${cfg.home_team}`;
+    teamsLine.classList.remove("hidden");
+  }
+  if (lockPill) {
+    lockPill.textContent = locked ? "Locked" : "Open";
+    lockPill.classList.remove("hidden");
+  }
 
   tbTeamsHint.textContent = `Home = ${cfg.home_team}, Away = ${cfg.away_team}`;
 
