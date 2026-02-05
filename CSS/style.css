@@ -176,3 +176,37 @@ tr.rank3 td{ background: var(--bronze); }
   .sb-banner__title{ font-size: 1rem; }
   .sb-banner__subtitle{ font-size: .88rem; }
 }
+/* Base theme */
+:root{
+  --muted:#9aa4b2; --text:#e9edf2; --border:#23283a; --accent:#60a5fa;
+  --shadow: 0 10px 30px rgba(0,0,0,.35); --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#07080c,#0b0c10);color:var(--text)}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:18px 14px 120px}
+.card{background:rgba(18,20,28,.85);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:.95rem}
+.badge{border:1px solid var(--border);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:.85rem;background:rgba(18,20,28,.55)}
+
+/* Table */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(35,40,58,.65);vertical-align:top}
+th{color:var(--muted);font-weight:700;font-size:.9rem}
+
+/* Banner */
+.sb-banner{
+  position:sticky;top:0;z-index:50;
+  border-bottom:1px solid rgba(35,40,58,.65);
+  backdrop-filter:blur(10px);
+  background:linear-gradient(90deg,#002244 0%,#C60C30 40%,#0b2240 62%,#69BE28 100%);
+}
+.sb-banner__inner{width:min(980px,100%);margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.sb-logo{flex:0 0 40px;width:40px;height:40px;max-width:40px;max-height:40px;object-fit:contain;display:block}
+.sb-banner__center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;line-height:1.1}
+.sb-banner__title{font-weight:850;font-size:1.05rem}
+.sb-banner__subtitle{margin-top:4px;font-size:.92rem;opacity:.9}
+.pill{border:1px solid var(--border);border-radius:999px;padding:6px 10px;margin-top:6px;font-size:.85rem;background:rgba(18,20,28,.55)}
+.hidden{display:none !important}
+
