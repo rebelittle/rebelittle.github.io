@@ -86,7 +86,7 @@
       "section": "PLAYER O/U",
       "label": "Drake Maye passing yards",
       "type": "over_under",
-      "line": 220.5,
+      "line": 221.5,
       "points": 1,
       "resultKey": "drake_maye_pass_yards"
     },
@@ -95,7 +95,7 @@
       "section": "PLAYER O/U",
       "label": "Sam Darnold passing yards",
       "type": "over_under",
-      "line": 229.5,
+      "line": 230.5,
       "points": 1,
       "resultKey": "sam_darnold_pass_yards"
     },
@@ -140,7 +140,7 @@
       "section": "PLAYER O/U",
       "label": "Jaxson Smith-Njigba receiving yards",
       "type": "over_under",
-      "line": 94.5,
+      "line": 96.5,
       "points": 1,
       "resultKey": "jsn_rec_yards"
     },
@@ -149,7 +149,7 @@
       "section": "PLAYER O/U",
       "label": "Stefon Diggs receiving yards",
       "type": "over_under",
-      "line": 44.5,
+      "line": 45.5,
       "points": 1,
       "resultKey": "diggs_rec_yards"
     },
@@ -158,7 +158,7 @@
       "section": "PLAYER O/U",
       "label": "Hunter Henry receiving yards",
       "type": "over_under",
-      "line": 38.5,
+      "line": 39.5,
       "points": 1,
       "resultKey": "henry_rec_yards"
     },
@@ -167,7 +167,7 @@
       "section": "PLAYER O/U",
       "label": "Cooper Kupp receiving yards",
       "type": "over_under",
-      "line": 32.5,
+      "line": 33.5,
       "points": 1,
       "resultKey": "kupp_rec_yards"
     },
@@ -194,7 +194,7 @@
       "section": "PLAYER O/U",
       "label": "AJ Barner receiving yards",
       "type": "over_under",
-      "line": 25.5,
+      "line": 24.5,
       "points": 1,
       "resultKey": "barner_rec_yards"
     },
@@ -203,7 +203,7 @@
       "section": "PLAYER O/U",
       "label": "Rhamondre Stevenson receiving yards",
       "type": "over_under",
-      "line": 23.5,
+      "line": 24.5,
       "points": 1,
       "resultKey": "rham_rec_yards"
     },
