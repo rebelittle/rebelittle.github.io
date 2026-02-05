@@ -570,6 +570,14 @@ if (prop.type === "player_anytime_td" || prop.type === "player_equals") {
   }
   return { ok:true, value:sv };
 }
+function addPropError(propId, msg) {
+  const block = propsRoot.querySelector(`.prop[data-prop-id="${propId}"]`);
+  if (!block) return;
+  const err = document.createElement("div");
+  err.className = "error";
+  err.textContent = msg;
+  block.appendChild(err);
+}
 
 function validateAndCollect() {
   clearError(formError);
@@ -619,8 +627,46 @@ function validateAndCollect() {
   }
 
   if (missing > 0) {
-    showError(formError, `Missing ${missing} pick(s). Fill everything out.`);
+      // --- Validation: Anytime TD and First TD must be different (per team) ---
+  const findProp = (labelRe) => propsData.props.find(p => labelRe.test(String(p.label || "")));
+
+  const patsAny  = findProp(/anytime\s*td\s*scorer.*patriots/i) || findProp(/patriots.*anytime\s*td\s*scorer/i);
+  const patsFirst= findProp(/first\s*td\s*scorer.*patriots/i)   || findProp(/patriots.*first\s*td\s*scorer/i);
+
+  const hawksAny = findProp(/anytime\s*td\s*scorer.*seahawks/i) || findProp(/seahawks.*anytime\s*td\s*scorer/i);
+  const hawksFirst=findProp(/first\s*td\s*scorer.*seahawks/i)   || findProp(/seahawks.*first\s*td\s*scorer/i);
+
+  let conflict = false;
+
+  const samePick = (a, b) => norm(a).toLowerCase() && norm(a).toLowerCase() === norm(b).toLowerCase();
+
+  if (patsAny && patsFirst) {
+    const a = picks[patsAny.id];
+    const f = picks[patsFirst.id];
+    if (samePick(a, f)) {
+      conflict = true;
+      const msg = "Anytime TD scorer and First TD scorer must be different (Patriots).";
+      addPropError(patsAny.id, msg);
+      addPropError(patsFirst.id, msg);
+    }
+  }
+
+  if (hawksAny && hawksFirst) {
+    const a = picks[hawksAny.id];
+    const f = picks[hawksFirst.id];
+    if (samePick(a, f)) {
+      conflict = true;
+      const msg = "Anytime TD scorer and First TD scorer must be different (Seahawks).";
+      addPropError(hawksAny.id, msg);
+      addPropError(hawksFirst.id, msg);
+    }
+  }
+
+  if (conflict) {
+    showError(formError, "Fix the TD scorer conflict(s) before continuing.");
     return null;
+  }
+
   }
 
   // Store tiebreaker INSIDE picks to match your current Supabase schema
