@@ -1,15 +1,122 @@
-/* ---------- Top team banner ---------- */
+:root{
+  --bg:#0b0c10;
+  --card:#12141c;
+  --muted:#9aa4b2;
+  --text:#e9edf2;
+  --border:#23283a;
+  --good:#2dd4bf;
+  --bad:#fb7185;
+  --accent:#60a5fa;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius:16px;
+
+  --gold: rgba(212,175,55,.22);
+  --silver: rgba(192,192,192,.22);
+  --bronze: rgba(205,127,50,.22);
+}
+
+*{ box-sizing:border-box; }
+
+html, body{
+  height:auto;
+  min-height:100%;
+}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: linear-gradient(180deg, #07080c, #0b0c10);
+  color: var(--text);
+  overflow-y:auto;
+}
+
+a{ color: var(--accent); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+
+.wrap{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 14px 120px;
+}
+
+.card{
+  background: rgba(18,20,28,.85);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  margin: 12px 0;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+.muted{ color: var(--muted); font-size: .95rem; }
+.small{ color: var(--muted); font-size: .92rem; }
+.err, .error{ color: var(--bad); font-size: .95rem; }
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--muted);
+  font-size: .85rem;
+  white-space: nowrap;
+  background: rgba(18,20,28,.55);
+}
+
+button{
+  border: 1px solid var(--border);
+  background: #101522;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+button:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* ----- Table (Leaderboard) ----- */
+table{ width:100%; border-collapse:collapse; }
+th, td{
+  text-align:left;
+  padding:10px;
+  border-bottom:1px solid rgba(35,40,58,.65);
+  vertical-align:top;
+}
+th{
+  color: var(--muted);
+  font-weight: 700;
+  font-size: .9rem;
+}
+.mono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+tr.rank1 td{ background: var(--gold); }
+tr.rank2 td{ background: var(--silver); }
+tr.rank3 td{ background: var(--bronze); }
+
+/* ----- Super Bowl banner ----- */
 .sb-banner{
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 50;
   border-bottom: 1px solid rgba(35,40,58,.65);
   backdrop-filter: blur(10px);
 
   background: linear-gradient(90deg,
     #002244 0%,
-    #C60C30 38%,
-    #0b2240 60%,
+    #C60C30 40%,
+    #0b2240 62%,
     #69BE28 100%
   );
 }
@@ -24,7 +131,7 @@
 }
 
 .sb-logo{
-  flex: 0 0 40px;          /* fixed column on both sides */
+  flex: 0 0 40px;
   width: 40px;
   height: 40px;
   max-width: 40px;
@@ -38,7 +145,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;     /* true center */
+  align-items: center;
   justify-content: center;
   text-align: center;
   color: #fff;
@@ -69,70 +176,3 @@
   .sb-banner__title{ font-size: 1rem; }
   .sb-banner__subtitle{ font-size: .88rem; }
 }
-
-
-/* Make sure your page content can scroll normally */
-body{
-  overflow-y: auto;
-}
-
-/* Mobile: even smaller */
-@media (max-width: 520px){
-  .sb-banner{ height: 56px; }
-  .sb-banner__inner{
-    grid-template-columns: 36px 1fr 36px;
-    padding: 8px 12px;
-  }
-  .sb-logo{
-    width: 36px;
-    height: 36px;
-    max-width: 36px;
-    max-height: 36px;
-  }
-  .sb-banner__title{ font-size: 1rem; }
-  .sb-banner__subtitle{ font-size: .88rem; }
-}
-
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: linear-gradient(180deg, #07080c, #0b0c10);
-  color:#e9edf2;
-}
-
-/* banner */
-.sb-banner{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  border-bottom: 1px solid rgba(35,40,58,.65);
-  backdrop-filter: blur(10px);
-  background: linear-gradient(90deg,#002244 0%,#C60C30 40%,#0b2240 62%,#69BE28 100%);
-}
-.sb-banner__inner{
-  width:min(980px,100%);
-  margin:0 auto;
-  padding:10px 14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.sb-logo{
-  flex:0 0 40px;
-  width:40px;height:40px;
-  max-width:40px;max-height:40px;
-  object-fit:contain;
-  display:block;
-}
-.sb-banner__center{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  color:#fff;
-}
-.sb-banner__title{font-weight:850;font-size:1.05rem}
-.sb-banner__subtitle{margin-top:4px;font-size:.92rem;opacity:.9}
-
