@@ -4,65 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Leaderboard</title>
-  <link rel="stylesheet" href="./CSS/style.css">
-  <!-- BUILD: leaderboard v12 -->
-  <style>
-    :root{
-      --bg:#0b0c10; --card:#12141c; --muted:#9aa4b2; --text:#e9edf2; --border:#23283a;
-      --shadow: 0 10px 30px rgba(0,0,0,.35); --radius:16px; --accent:#60a5fa;
-      --bad:#fb7185;
-      --gold: rgba(212,175,55,.22);
-      --silver: rgba(192,192,192,.22);
-      --bronze: rgba(205,127,50,.22);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#07080c,#0b0c10);color:var(--text)}
-    a{color:var(--accent);text-decoration:none}
-    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 60px}
-    .card{background:rgba(18,20,28,.85);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 0}
-    .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    h1{margin:0;font-size:1.35rem}
-    .muted{color:var(--muted);font-size:.95rem}
-    .err{color:var(--bad);font-size:.95rem}
-    .badge{border:1px solid var(--border);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:.85rem}
-    button{border:1px solid var(--border);background:#101522;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}
-    table{width:100%;border-collapse:collapse}
-    th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(35,40,58,.65);vertical-align:top}
-    th{color:var(--muted);font-weight:700;font-size:.9rem}
-    tr.rank1 td{background: var(--gold)}
-    tr.rank2 td{background: var(--silver)}
-    tr.rank3 td{background: var(--bronze)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-  </style>
+  <link rel="stylesheet" href="./CSS/style.css?v=7">
 </head>
+
 <body>
   <header class="sb-banner">
-  <div class="sb-banner__inner">
-    <img class="sb-logo" src="./patriots.png" alt="Patriots logo" />
-    <div class="sb-title">
-      <div class="sb-banner__title">Leaderboard</div>
-<div class="sb-banner__subtitle" id="subline">Game: SB-2026</div>
-
+    <div class="sb-banner__inner">
+      <img class="sb-logo" src="./assets/patriots.png" alt="Patriots logo" />
       <div class="sb-banner__center">
-      <div class="h1">Leaderboard</div>
-      <div class="sub" id="subline">Game: SB-2026</div>
+        <div class="sb-banner__title">Leaderboard</div>
+        <div class="sb-banner__subtitle" id="subline">Game: SB-2026</div>
+      </div>
+      <img class="sb-logo" src="./assets/seahawks.png" alt="Seahawks logo" />
     </div>
-    <img class="sb-logo" src="./seahawks.png" alt="Seahawks logo" />
-  </div>
-</header>
+  </header>
+
   <div class="wrap">
     <div class="card">
       <div class="row">
-        <div>
-          <h1>Leaderboard</h1>
-          <div class="muted" id="subline">Loading…</div>
-        </div>
+        <div class="muted" id="hint"></div>
         <div class="row">
           <a href="./index.html">Back to picks</a>
           <button id="refreshBtn">Refresh</button>
         </div>
       </div>
-      <div class="muted" style="margin-top:8px" id="hint"></div>
     </div>
 
     <div class="card">
@@ -88,6 +53,6 @@
     </div>
   </div>
 
-  <script type="module" src="./leaderboard.js?v=99"></script>
+  <script type="module" src="./leaderboard.js?v=100"></script>
 </body>
 </html>
