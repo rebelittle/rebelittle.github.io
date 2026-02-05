@@ -92,3 +92,47 @@ body{
   .sb-banner__title{ font-size: 1rem; }
   .sb-banner__subtitle{ font-size: .88rem; }
 }
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: linear-gradient(180deg, #07080c, #0b0c10);
+  color:#e9edf2;
+}
+
+/* banner */
+.sb-banner{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid rgba(35,40,58,.65);
+  backdrop-filter: blur(10px);
+  background: linear-gradient(90deg,#002244 0%,#C60C30 40%,#0b2240 62%,#69BE28 100%);
+}
+.sb-banner__inner{
+  width:min(980px,100%);
+  margin:0 auto;
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.sb-logo{
+  flex:0 0 40px;
+  width:40px;height:40px;
+  max-width:40px;max-height:40px;
+  object-fit:contain;
+  display:block;
+}
+.sb-banner__center{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#fff;
+}
+.sb-banner__title{font-weight:850;font-size:1.05rem}
+.sb-banner__subtitle{margin-top:4px;font-size:.92rem;opacity:.9}
+
