@@ -154,6 +154,41 @@ function showPickUI() {
   if (btnNext) btnNext.classList.remove("hidden");
   // btnBack stays hidden unless you go to review
 }
+function canonPick(v) {
+  return String(v ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[^a-z0-9 ]/g, ""); // strips punctuation/parentheses/etc
+}
+
+function inferTeam(prop) {
+  const t = String(prop.teamRestriction || prop.team || "").toLowerCase();
+  const lbl = String(prop.label || "").toLowerCase();
+
+  if (t.includes("pat") || lbl.includes("patriots") || lbl.includes("pats")) return "Patriots";
+  if (t.includes("sea") || t.includes("hawk") || lbl.includes("seahawks") || lbl.includes("hawks")) return "Seahawks";
+  return null;
+}
+
+function isAnytimeTD(prop) {
+  const lbl = String(prop.label || "").toLowerCase();
+  return prop.type === "player_anytime_td" || /anytime.*td.*scorer/.test(lbl);
+}
+
+function isFirstTD(prop) {
+  const lbl = String(prop.label || "").toLowerCase();
+  return /first.*td.*scorer/.test(lbl);
+}
+
+function addPropErrorById(propId, msg) {
+  const block = propsRoot.querySelector(`.prop[data-prop-id="${propId}"]`);
+  if (!block) return;
+  const err = document.createElement("div");
+  err.className = "error";
+  err.textContent = msg;
+  block.appendChild(err);
+}
 
 
 
