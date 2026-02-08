@@ -13,6 +13,88 @@ const note = document.getElementById("note");
 const hint = document.getElementById("hint");
 const scoredBadge = document.getElementById("scoredBadge");
 
+function notNull(v) {
+  return v !== null && v !== undefined;
+}
+
+function isNonEmptyString(v) {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+function isNumber(v) {
+  return typeof v === "number" && Number.isFinite(v);
+}
+
+// Decide if THIS prop has a non-null result in game_results.results
+function propIsScored(prop, results) {
+  const key = prop.resultKey || prop.id;
+
+  // Over/under: scored when the numeric stat exists (not null)
+  if (prop.type === "over_under") {
+    return notNull(results?.[key]);
+  }
+
+  // Team picks that derive from structured objects
+  if (prop.type === "team_pick") {
+    if (key === "final") {
+      return notNull(results?.final?.Patriots) && notNull(results?.final?.Seahawks);
+    }
+    if (key === "sacks") {
+      return notNull(results?.sacks?.Patriots) && notNull(results?.sacks?.Seahawks);
+    }
+    if (key === "turnovers") {
+      return notNull(results?.turnovers?.Patriots) && notNull(results?.turnovers?.Seahawks);
+    }
+    if (key === "first_half") {
+      return notNull(results?.first_half?.Patriots) && notNull(results?.first_half?.Seahawks);
+    }
+    // e.g. leading_passer etc.
+    return notNull(results?.[key]) && (isNonEmptyString(results?.[key]) || isNumber(results?.[key]));
+  }
+
+  // Spread depends on final score existing
+  if (prop.type === "spread_pick") {
+    return notNull(results?.final?.Patriots) && notNull(results?.final?.Seahawks);
+  }
+
+  // Player equals (first TD, MVP, leaders, etc.)
+  if (prop.type === "player_equals" || prop.type === "text_equals") {
+    if (key === "first_td_scorer") return notNull(results?.first_td_scorer?.player);
+    return notNull(results?.[key]);
+  }
+
+  // Anytime TD scorer lists
+  if (prop.type === "player_anytime_td" || prop.type === "restricted_anytime_td") {
+    return notNull(results?.all_td_scorers); // MUST be null pregame for this to work correctly
+  }
+
+  // Yes-only boolean props
+  if (prop.type === "yes_only_boolean") {
+    // MUST be null pregame; boolean once known
+    return notNull(results?.[key]);
+  }
+
+  // Yes-only list props (ex: 2+ TD scorers)
+  if (prop.type === "yes_only_player_from_list") {
+    return notNull(results?.[key]); // MUST be null pregame
+  }
+
+  // Fallback: any non-null value for its resultKey
+  return notNull(results?.[key]);
+}
+
+function computeScoredPct(propsData, results) {
+  const total = propsData?.props?.length ?? 0;
+  if (!total || !results) return { scored: 0, total, pct: 0 };
+
+  let scored = 0;
+  for (const prop of propsData.props) {
+    if (propIsScored(prop, results)) scored++;
+  }
+  return { scored, total, pct: Math.round((scored / total) * 100) };
+}
+
+
 function numChanged(n) {
   const v = Number(n);
   return Number.isFinite(v) && v !== 0;
@@ -300,10 +382,11 @@ async function load() {
 
   // % scored bubble
 if (scoredBadge) {
-  const { scored, total, pct } = computeScoredPercent(propsData, results);
+  const { scored, total, pct } = computeScoredPct(propsData, results);
   scoredBadge.textContent = `${pct}% scored`;
-  scoredBadge.title = `${scored}/${total} props have results available (live progress)`;
+  scoredBadge.title = `${scored}/${total} props have non-null results in game_results`;
 }
+
 
 
   
