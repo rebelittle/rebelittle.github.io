@@ -136,9 +136,16 @@ async function load() {
   subline.textContent = `Game: ${propsData.gameId}`;
 
   // results.json (optional; needed for points)
-  let results = null;
-  try { results = await loadJson(new URL("./results.json", import.meta.url)); }
-  catch { results = null; }
+import { loadResultsForGame, scoreSubmission } from "./scoring.js";
+
+const { results, source, updated_at } = await loadResultsForGame(propsData.gameId, supabase, {
+  fallbackUrl: "./results.json",
+});
+
+// you can show source/updated_at in UI if you want:
+note.textContent = results
+  ? `Scoring source: ${source}${updated_at ? ` • updated ${new Date(updated_at).toLocaleTimeString()}` : ""}`
+  : "Results not posted yet. Showing entries only.";
 
   // eligibility.json (optional)
   let eligibility = {};
