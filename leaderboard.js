@@ -11,6 +11,94 @@ const countBadge = document.getElementById("countBadge");
 const refreshBtn = document.getElementById("refreshBtn");
 const note = document.getElementById("note");
 const hint = document.getElementById("hint");
+const scoredBadge = document.getElementById("scoredBadge");
+
+function numChanged(n) {
+  const v = Number(n);
+  return Number.isFinite(v) && v !== 0;
+}
+function strChanged(s) {
+  return String(s ?? "").trim().length > 0;
+}
+function arrChanged(a) {
+  return Array.isArray(a) && a.length > 0;
+}
+function objAnyNumChanged(o) {
+  if (!o || typeof o !== "object") return false;
+  return Object.values(o).some(v => numChanged(v));
+}
+
+function propHasAnyResultYet(prop, results, completed) {
+  const key = prop.resultKey || prop.id;
+
+  // If game is marked completed, treat everything as "scored"
+  if (completed) return true;
+
+  // Team/spread depend on final/sacks/turnovers/first_half objects changing from 0s
+  if (prop.type === "team_pick" || prop.type === "spread_pick") {
+    if (key === "final") return objAnyNumChanged(results?.final);
+    if (key === "sacks") return objAnyNumChanged(results?.sacks);
+    if (key === "turnovers") return objAnyNumChanged(results?.turnovers);
+    if (key === "first_half") return objAnyNumChanged(results?.first_half);
+    // fallback: string fields like leading_passer
+    return strChanged(results?.[key]);
+  }
+
+  // Numeric lines
+  if (prop.type === "over_under") {
+    return numChanged(results?.[key]);
+  }
+
+  // TD props
+  if (prop.type === "player_anytime_td" || prop.type === "restricted_anytime_td") {
+    // Count as "scored" once we have at least one TD scorer (or completed)
+    return arrChanged(results?.all_td_scorers) || objAnyNumChanged(results?.final); // final moving implies game started
+  }
+
+  // First TD / MVP / Leaders etc (string-like)
+  if (prop.type === "player_equals" || prop.type === "text_equals") {
+    if (key === "first_td_scorer") return strChanged(results?.first_td_scorer?.player);
+    return strChanged(results?.[key]);
+  }
+
+  // Yes-only boolean
+  if (prop.type === "yes_only_boolean") {
+    // Only count if it actually happened (true) during the game
+    return results?.[key] === true;
+  }
+
+  // Yes-only list
+  if (prop.type === "yes_only_player_from_list") {
+    return arrChanged(results?.[key]);
+  }
+
+  // Fallback
+  const v = results?.[key];
+  if (typeof v === "number") return numChanged(v);
+  if (typeof v === "string") return strChanged(v);
+  if (typeof v === "boolean") return v === true;
+  if (Array.isArray(v)) return arrChanged(v);
+  if (v && typeof v === "object") return objAnyNumChanged(v);
+
+  return false;
+}
+
+function computeScoredPercent(propsData, results) {
+  const total = propsData?.props?.length ?? 0;
+  if (!total || !results) return { scored: 0, total: total || 0, pct: 0 };
+
+  // If you add _meta.completed from the Edge Function (recommended), this becomes perfect at endgame
+  const completed = !!results?._meta?.completed;
+
+  let scored = 0;
+  for (const prop of propsData.props) {
+    if (propHasAnyResultYet(prop, results, completed)) scored++;
+  }
+
+  const pct = Math.round((scored / total) * 100);
+  return { scored, total, pct };
+}
+
 
 function norm(s){ return String(s ?? "").trim(); }
 
@@ -209,6 +297,16 @@ async function load() {
   });
 
   renderScored(scored);
+
+  // % scored bubble
+if (scoredBadge) {
+  const { scored, total, pct } = computeScoredPercent(propsData, results);
+  scoredBadge.textContent = `${pct}% scored`;
+  scoredBadge.title = `${scored}/${total} props have results available (live progress)`;
+}
+
+
+  
 }
 
 refreshBtn?.addEventListener("click", load);
