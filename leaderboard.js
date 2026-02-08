@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { loadResultsForGame } from "./scoring.js";
-import { scoreSubmission as scoreSubmissionEngine } from "./scoring.js";
+import { loadResultsForGame, scoreSubmission } from "./scoring.js";
 
 const SUPABASE_URL = "https://qtyifatnegjjzkcnzqrw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Xl7ubx_C2vmH3cJXwt1BtQ_nTOA2I7t";
@@ -15,6 +14,27 @@ const hint = document.getElementById("hint");
 
 function norm(s){ return String(s ?? "").trim(); }
 
+function requireEls() {
+  const missing = [];
+  if (!rowsEl) missing.push("rows");
+  if (!subline) missing.push("subline");
+  if (!countBadge) missing.push("countBadge");
+  if (!refreshBtn) missing.push("refreshBtn");
+  if (!note) missing.push("note");
+  if (!hint) missing.push("hint");
+  if (missing.length) {
+    // show a visible error even without DevTools
+    document.body.innerHTML = `
+      <div style="padding:16px;font-family:system-ui">
+        <h2>Leaderboard HTML missing required ids:</h2>
+        <pre>${missing.join(", ")}</pre>
+        <p>Fix leaderboard.html so these elements exist exactly once.</p>
+      </div>
+    `;
+    throw new Error("Missing required DOM elements: " + missing.join(", "));
+  }
+}
+
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`${url} (${res.status})`);
@@ -22,62 +42,75 @@ async function loadJson(url) {
 }
 
 async function load() {
+  requireEls();
+
   rowsEl.innerHTML = "";
   subline.textContent = "Loading…";
   countBadge.textContent = "0 entries";
   note.textContent = "";
-  hint.textContent = "";
+  hint.textContent = "Starting…";
 
-  // props.json
+  // 1) props.json
   let propsData;
   try {
     propsData = await loadJson(new URL("./props.json", import.meta.url));
+    hint.textContent = "Loaded props.json ✅";
   } catch (e) {
-    subline.textContent = "Could not load props.json";
+    hint.textContent = "Failed to load props.json ❌";
     rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error loading props.json</td></tr>`;
     return;
   }
-  subline.textContent = `Game: ${propsData.gameId}`;
 
-  // eligibility.json (optional)
+  const gameId = String(propsData?.gameId ?? "SB-2026").trim();
+  subline.textContent = `Game: ${gameId}`;
+
+  // 2) eligibility (optional)
   let eligibility = {};
   try { eligibility = await loadJson(new URL("./eligibility.json", import.meta.url)); }
   catch { eligibility = {}; }
 
-  // Load results from Supabase first, fallback to results.json
-  const { results, source, updated_at } = await loadResultsForGame(propsData.gameId, supabase, {
+  // 3) results from Supabase first (fallback file)
+  const { results, source, updated_at } = await loadResultsForGame(gameId, supabase, {
     fallbackUrl: "./results.json",
   });
 
-  // lock status
-  const { data: entries, error: e1 } = await supabase
-  .rpc("list_entries", { p_game_id: propsData.gameId });
+  // 4) lock status
+  let locked = false;
+  try {
+    const { data: cfg, error } = await supabase
+      .from("game_config")
+      .select("lock_enabled, lock_at")
+      .eq("game_id", gameId)
+      .maybeSingle();
 
-  if (cfgErr) {
-    hint.textContent = `game_config read error: ${cfgErr.message}`;
+    if (error) {
+      hint.textContent = `game_config read error: ${error.message}`;
+    } else {
+      locked = !!(cfg?.lock_enabled && new Date() >= new Date(cfg.lock_at));
+      hint.textContent = locked ? "Locked ✅" : "Unlocked ✅";
+    }
+  } catch (e) {
+    hint.textContent = `Lock check failed: ${String(e?.message ?? e)}`;
   }
 
-  const locked = !!(cfg?.lock_enabled && new Date() >= new Date(cfg.lock_at));
-
-  // ALWAYS fetch entry list (no picks)
+  // 5) ALWAYS fetch entries (safe RPC)
+  hint.textContent += " • Loading entries…";
   const { data: entries, error: e1 } = await supabase
-    .from("submissions")
-    .select("id, player_name, created_at, game_id")
-    .eq("game_id", propsData.gameId);
+    .rpc("list_entries", { p_game_id: gameId });
 
   if (e1) {
-    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error: ${e1.message}</td></tr>`;
-    note.textContent = "Check RLS/permissions for submissions select.";
+    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Entries error: ${e1.message}</td></tr>`;
+    note.textContent = `Your leaderboard needs the RPC list_entries. (Supabase SQL function missing or not granted to anon.)`;
+    hint.textContent = "Entries RPC failed ❌";
     return;
   }
 
   countBadge.textContent = `${entries.length} entries`;
 
-  // If NOT locked: show entries only; hide points + tiebreak
+  // If NOT locked: show entries only
   if (!locked) {
     note.textContent = "Entries are visible. Picks/points are hidden until lock.";
     rowsEl.innerHTML = entries
-      .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
       .map((s, i) => {
         const dt = new Date(s.created_at);
         const when = isNaN(dt.getTime()) ? String(s.created_at) : dt.toLocaleString();
@@ -94,13 +127,13 @@ async function load() {
     return;
   }
 
-  // LOCKED: fetch picks via RPC (server-gated)
+  // Locked: fetch picks via RPC (your existing gate)
   const { data: fullRows, error: e2 } = await supabase
-    .rpc("get_submissions_after_lock", { p_game_id: propsData.gameId });
+    .rpc("get_submissions_after_lock", { p_game_id: gameId });
 
   if (e2) {
-    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error: ${e2.message}</td></tr>`;
-    note.textContent = "Locked, but could not fetch picks via RPC. Check the function and grants.";
+    rowsEl.innerHTML = `<tr><td colspan="5" class="err">Picks RPC error: ${e2.message}</td></tr>`;
+    note.textContent = "Locked, but could not fetch picks via RPC.";
     return;
   }
 
@@ -108,36 +141,33 @@ async function load() {
   const picksById = new Map(fullRows.map(r => [r.id, r.picks]));
   const merged = entries.map(e => ({ ...e, picks: picksById.get(e.id) || null }));
 
-  // If results missing: show entries + tiebreak, but no points
+  // If results missing: show tiebreaker but no points
   if (!results) {
     note.textContent = "Locked. Picks are visible. Results not posted yet, so points are hidden.";
-    rowsEl.innerHTML = merged
-      .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
-      .map((s, i) => {
-        const dt = new Date(s.created_at);
-        const when = isNaN(dt.getTime()) ? String(s.created_at) : dt.toLocaleString();
-        const tb = s.picks?._tiebreaker_final_score;
-        const tbText = tb ? `${tb.home}-${tb.away}` : "—";
-        return `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${norm(s.player_name)}</td>
-            <td class="mono">—</td>
-            <td class="mono">${tbText}</td>
-            <td>${when}</td>
-          </tr>
-        `;
-      }).join("");
+    rowsEl.innerHTML = merged.map((s, i) => {
+      const dt = new Date(s.created_at);
+      const when = isNaN(dt.getTime()) ? String(s.created_at) : dt.toLocaleString();
+      const tb = s.picks?._tiebreaker_final_score;
+      const tbText = tb ? `${tb.home}-${tb.away}` : "—";
+      return `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${norm(s.player_name)}</td>
+          <td class="mono">—</td>
+          <td class="mono">${tbText}</td>
+          <td>${when}</td>
+        </tr>
+      `;
+    }).join("");
     return;
   }
 
-  // Results present: score + sort + medals
+  // Score + sort
   note.textContent =
     `Locked. Scoring source: ${source}${updated_at ? ` • updated ${new Date(updated_at).toLocaleTimeString()}` : ""}`;
 
   const scored = merged.map(s => {
-    // scoring.js expects results shaped like your original results.json object
-    const res = scoreSubmissionEngine(
+    const res = scoreSubmission(
       { picks: s.picks, tiebreaker_home: null, tiebreaker_away: null },
       propsData,
       results,
@@ -179,4 +209,7 @@ async function load() {
 }
 
 refreshBtn.addEventListener("click", load);
-load();
+load().catch(e => {
+  // last-resort visible error
+  if (hint) hint.textContent = `Fatal error: ${String(e?.message ?? e)}`;
+});
