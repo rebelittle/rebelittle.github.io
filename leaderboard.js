@@ -50,11 +50,8 @@ async function load() {
   });
 
   // lock status
-  const { data: cfg, error: cfgErr } = await supabase
-    .from("game_config")
-    .select("lock_enabled, lock_at")
-    .eq("game_id", propsData.gameId)
-    .maybeSingle();
+  const { data: entries, error: e1 } = await supabase
+  .rpc("list_entries", { p_game_id: propsData.gameId });
 
   if (cfgErr) {
     hint.textContent = `game_config read error: ${cfgErr.message}`;
