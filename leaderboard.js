@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { loadResultsForGame } from "./scoring.js";
+import { scoreSubmission as scoreSubmissionEngine } from "./scoring.js";
 
 const SUPABASE_URL = "https://qtyifatnegjjzkcnzqrw.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Xl7ubx_C2vmH3cJXwt1BtQ_nTOA2I7t";
@@ -12,104 +14,6 @@ const note = document.getElementById("note");
 const hint = document.getElementById("hint");
 
 function norm(s){ return String(s ?? "").trim(); }
-function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
-
-function scoreOverUnder(pickOU, line, actual) {
-  if (typeof actual !== "number" || typeof line !== "number") return 0;
-  if (actual === line) return 0; // push
-  const correct = actual > line ? "O" : "U";
-  return pickOU === correct ? 1 : 0;
-}
-
-function computeTiebreakPoints(pred, final, maxPts = 10) {
-  if (!pred || !final) return { pts: 0, diff: null };
-  const ph = Number(pred.home), pa = Number(pred.away);
-  const ah = Number(final.homeScore), aa = Number(final.awayScore);
-  if (![ph,pa,ah,aa].every(Number.isFinite)) return { pts: 0, diff: null };
-
-  const diff = Math.abs(ph - ah) + Math.abs(pa - aa);
-  const pts = clamp(maxPts - diff, 0, maxPts);
-  return { pts, diff };
-}
-
-function getOutcomeKey(prop) {
-  return prop.resultKey || prop.id;
-}
-
-function scoreProp(prop, pick, results, eligibility) {
-  if (pick == null || pick === "") return 0;
-
-  if (prop.type === "over_under") {
-    const actual = results?.stats?.[getOutcomeKey(prop)];
-    const line = Number(prop.line);
-    const unit = Number(prop.points ?? 1);
-    return scoreOverUnder(pick, line, actual) ? unit : 0;
-  }
-
-  if (prop.type === "team_pick" || prop.type === "spread_pick" || prop.type === "player_equals") {
-    const correct = results?.answers?.[getOutcomeKey(prop)];
-    if (!correct || correct === "PUSH") return 0;
-    return (String(pick) === String(correct)) ? Number(prop.points ?? 0) : 0;
-  }
-
-  if (prop.type === "player_anytime_td") {
-    const listKey = prop.resultKey || "all_td_scorers";
-    const scorers = results?.lists?.[listKey] || results?.lists?.all_td_scorers || [];
-    return scorers.includes(pick) ? Number(prop.points ?? 0) : 0;
-  }
-
-  if (prop.type === "restricted_anytime_td") {
-    const eligKey = prop.eligibleListKey;
-    const eligList = (eligKey && eligibility?.[eligKey]) ? eligibility[eligKey] : null;
-    const scorers = results?.lists?.[prop.resultKey || "all_td_scorers"] || results?.lists?.all_td_scorers || [];
-    const okElig = eligList ? eligList.includes(pick) : true;
-    const okTD = scorers.includes(pick);
-    return (okElig && okTD) ? Number(prop.points ?? 0) : 0;
-  }
-
-  if (prop.type === "yes_only_boolean") {
-    const occurred = results?.answers?.[getOutcomeKey(prop)]; // "YES" / "NO"
-    if (pick !== "YES") return 0;
-    if (occurred === "YES") return Number(prop.pointsCorrectYes ?? prop.points ?? 0);
-    if (occurred === "NO") return Number(prop.pointsIncorrectYes ?? 0);
-    return 0;
-  }
-
-  if (prop.type === "yes_only_player_from_list") {
-    const noneLabel = prop.noneLabel ?? "NONE";
-    if (pick === noneLabel) return 0;
-
-    const listKey = prop.resultKey || "players_2plus_tds";
-    const winners = results?.lists?.[listKey] || [];
-    const correct = winners.includes(pick);
-
-    const ptsYes = Number(prop.pointsCorrectYes ?? prop.points ?? 0);
-    const ptsNo = Number(prop.pointsIncorrectYes ?? 0);
-    return correct ? ptsYes : ptsNo;
-  }
-
-  const correct = results?.answers?.[getOutcomeKey(prop)];
-  if (correct && correct !== "PUSH") {
-    return (String(pick) === String(correct)) ? Number(prop.points ?? 0) : 0;
-  }
-
-  return 0;
-}
-
-function scoreSubmission(subWithPicks, propsData, results, eligibility) {
-  let total = 0;
-
-  for (const prop of propsData.props) {
-    const pick = subWithPicks.picks?.[prop.id];
-    total += scoreProp(prop, pick, results, eligibility);
-  }
-
-  const tb = subWithPicks.picks?._tiebreaker_final_score;
-  const tbRes = computeTiebreakPoints(tb, results?.final, 10);
-  total += tbRes.pts;
-
-  return { total, tbDiff: tbRes.diff };
-}
 
 async function loadJson(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -128,36 +32,33 @@ async function load() {
   let propsData;
   try {
     propsData = await loadJson(new URL("./props.json", import.meta.url));
-  } catch {
+  } catch (e) {
     subline.textContent = "Could not load props.json";
     rowsEl.innerHTML = `<tr><td colspan="5" class="err">Error loading props.json</td></tr>`;
     return;
   }
   subline.textContent = `Game: ${propsData.gameId}`;
 
-  // results.json (optional; needed for points)
-import { loadResultsForGame, scoreSubmission } from "./scoring.js";
-
-const { results, source, updated_at } = await loadResultsForGame(propsData.gameId, supabase, {
-  fallbackUrl: "./results.json",
-});
-
-// you can show source/updated_at in UI if you want:
-note.textContent = results
-  ? `Scoring source: ${source}${updated_at ? ` • updated ${new Date(updated_at).toLocaleTimeString()}` : ""}`
-  : "Results not posted yet. Showing entries only.";
-
   // eligibility.json (optional)
   let eligibility = {};
   try { eligibility = await loadJson(new URL("./eligibility.json", import.meta.url)); }
   catch { eligibility = {}; }
 
+  // Load results from Supabase first, fallback to results.json
+  const { results, source, updated_at } = await loadResultsForGame(propsData.gameId, supabase, {
+    fallbackUrl: "./results.json",
+  });
+
   // lock status
-  const { data: cfg } = await supabase
+  const { data: cfg, error: cfgErr } = await supabase
     .from("game_config")
     .select("lock_enabled, lock_at")
     .eq("game_id", propsData.gameId)
     .maybeSingle();
+
+  if (cfgErr) {
+    hint.textContent = `game_config read error: ${cfgErr.message}`;
+  }
 
   const locked = !!(cfg?.lock_enabled && new Date() >= new Date(cfg.lock_at));
 
@@ -211,8 +112,8 @@ note.textContent = results
   const merged = entries.map(e => ({ ...e, picks: picksById.get(e.id) || null }));
 
   // If results missing: show entries + tiebreak, but no points
-  if (!results || results.gameId !== propsData.gameId) {
-    note.textContent = "Locked. Picks are visible. Results not posted yet (missing results.json), so points are hidden.";
+  if (!results) {
+    note.textContent = "Locked. Picks are visible. Results not posted yet, so points are hidden.";
     rowsEl.innerHTML = merged
       .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
       .map((s, i) => {
@@ -233,10 +134,19 @@ note.textContent = results
     return;
   }
 
-  // RESULTS PRESENT: score + sort + medals
+  // Results present: score + sort + medals
+  note.textContent =
+    `Locked. Scoring source: ${source}${updated_at ? ` • updated ${new Date(updated_at).toLocaleTimeString()}` : ""}`;
+
   const scored = merged.map(s => {
-    const res = scoreSubmission(s, propsData, results, eligibility);
-    return { ...s, points: res.total, tbDiff: res.tbDiff };
+    // scoring.js expects results shaped like your original results.json object
+    const res = scoreSubmissionEngine(
+      { picks: s.picks, tiebreaker_home: null, tiebreaker_away: null },
+      propsData,
+      results,
+      eligibility
+    );
+    return { ...s, points: res.total, tbDiff: res.tiebreaker?.error ?? null };
   });
 
   scored.sort((a,b) => {
@@ -246,8 +156,6 @@ note.textContent = results
     if (ad !== bd) return ad - bd;
     return new Date(a.created_at) - new Date(b.created_at);
   });
-
-  note.textContent = "Locked. Sorted by points (desc). Ties broken by tiebreaker closeness.";
 
   rowsEl.innerHTML = scored.map((s, idx) => {
     const rank = idx + 1;
@@ -259,13 +167,13 @@ note.textContent = results
 
     const tb = s.picks?._tiebreaker_final_score;
     const tbText = tb ? `${tb.home}-${tb.away}` : "—";
-    const tbDiff = (s.tbDiff == null) ? "—" : `±${s.tbDiff}`;
+    const tbDiff = (s.tbDiff == null || s.tbDiff === Infinity) ? "—" : `±${s.tbDiff}`;
 
     return `
       <tr class="${cls}">
         <td>${medal} ${rank}</td>
         <td>${norm(s.player_name)}</td>
-        <td class="mono">${s.points.toFixed(1)}</td>
+        <td class="mono">${Number(s.points).toFixed(1)}</td>
         <td class="mono">${tbText} (${tbDiff})</td>
         <td>${when}</td>
       </tr>
@@ -275,4 +183,3 @@ note.textContent = results
 
 refreshBtn.addEventListener("click", load);
 load();
-
