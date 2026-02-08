@@ -272,6 +272,52 @@ export function scoreSubmission({ picks, tiebreaker_home, tiebreaker_away }, pro
       status
     });
   }
+  async function fetchJsonMaybe(url) {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Load results from Supabase game_results first.
+ * Fallback to results.json if not found.
+ *
+ * Returns: { results, source, updated_at }
+ */
+export async function loadResultsForGame(gameId, supabase, {
+  fallbackUrl = "./results.json",
+} = {}) {
+  // 1) Try Supabase
+  if (supabase && gameId) {
+    const { data, error } = await supabase
+      .from("game_results")
+      .select("results, updated_at, source")
+      .eq("game_id", gameId)
+      .maybeSingle();
+
+    if (!error && data?.results) {
+      return {
+        results: data.results,
+        source: data.source || "supabase",
+        updated_at: data.updated_at || null,
+      };
+    }
+  }
+
+  // 2) Fallback: static file
+  const file = await fetchJsonMaybe(fallbackUrl);
+  if (file) {
+    return { results: file, source: "file", updated_at: null };
+  }
+
+  // 3) Nothing available yet
+  return { results: null, source: "none", updated_at: null };
+}
+
 
   // Tiebreaker error: abs(home diff) + abs(away diff)
   const finalScores = results?.final ?? {};
@@ -285,8 +331,12 @@ export function scoreSubmission({ picks, tiebreaker_home, tiebreaker_away }, pro
     const actualHome = safeNum(finalScores[homeTeam]);
     const actualAway = safeNum(finalScores[awayTeam]);
 
-    const ph = safeNum(tiebreaker_home);
-    const pa = safeNum(tiebreaker_away);
+    // Support both styles:
+// - old: scoreSubmission({tiebreaker_home, tiebreaker_away})
+// - current site: picks._tiebreaker_final_score = { home, away }
+const tbPick = picks?._tiebreaker_final_score;
+const ph = safeNum(tiebreaker_home ?? tbPick?.home);
+const pa = safeNum(tiebreaker_away ?? tbPick?.away);
 
     if (actualHome !== null && actualAway !== null && ph !== null && pa !== null) {
       tb = { error: Math.abs(ph - actualHome) + Math.abs(pa - actualAway) };
