@@ -1,297 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- Patriots tab icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="./favicon_io (1)/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon_io (1)/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./favicon_io (1)/favicon-16x16.png">
-<link rel="manifest" href="./favicon_io (1)/site.webmanifest">
-<link rel="icon" href="./favicon_io (1)/favicon.ico">
-
-  <title>Super Bowl Prop Sheet</title>
-  
-  <style>
-    :root{
-      --bg:#0b0c10;
-      --card:#12141c;
-      --muted:#9aa4b2;
-      --text:#e9edf2;
-      --border:#23283a;
-      --good:#2dd4bf;
-      --bad:#fb7185;
-      --accent:#60a5fa;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:16px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #07080c, #0b0c10);
-      color:var(--text);
-    }
-    a{color:var(--accent); text-decoration:none}
-    .wrap{max-width: 980px; margin:0 auto; padding: 18px 14px 120px;}
-    
-    .hdr{
-      max-width: 980px; margin:0 auto; padding: 14px;
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
-    }
-    .title h1{margin:0; font-size: 1.25rem; letter-spacing: .2px;}
-    .title .sub{color:var(--muted); font-size:.95rem; margin-top:4px}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      border:1px solid var(--border);
-      background: rgba(18,20,28,.7);
-      padding:8px 10px; border-radius: 999px;
-      font-size:.9rem; color: var(--muted);
-      white-space:nowrap;
-    }
-    .pill b{color:var(--text)}
-    .card{
-      background: rgba(18,20,28,.8);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      margin: 12px 0;
-    }
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    @media (min-width: 780px){
-      .title h1{font-size: 1.55rem;}
-      .grid2{grid-template-columns: 1fr 1fr;}
-    }
-    label{display:block; font-size:.9rem; color: var(--muted); margin-bottom:6px}
-    input[type="text"], input[type="number"], select{
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border:1px solid var(--border);
-      background: #0f1118;
-      color: var(--text);
-      font-size: 1rem;
-      outline: none;
-    }
-    input:disabled, select:disabled{opacity:.55}
-    .row{
-      display:flex; gap:10px; align-items:center; flex-wrap: wrap;
-    }
-    .btnbar{
-      position: fixed;
-      left:0; right:0; bottom:0;
-      background: rgba(11,12,16,.92);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(35,40,58,.8);
-      padding: 12px 14px;
-      z-index: 20;
-    }
-    .btnbar .inner{
-      max-width: 980px; margin:0 auto;
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-    }
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      background: #101522;
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      cursor:pointer;
-      font-weight: 650;
-      font-size: 1rem;
-      width: 100%;
-    }
-    .btn.primary{
-      background: linear-gradient(180deg, #1f6feb, #1d4ed8);
-      border-color: rgba(96,165,250,.35);
-    }
-    .btn.ghost{
-      background: transparent;
-    }
-    .btn:disabled{opacity:.6; cursor:not-allowed}
-    .stepper{
-      display:flex; gap:8px; flex-wrap:wrap;
-      margin: 12px 0 6px;
-    }
-    .step{
-      padding: 8px 10px;
-      border:1px solid var(--border);
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: .9rem;
-      background: rgba(18,20,28,.6);
-    }
-    .step.active{color: var(--text); border-color: rgba(96,165,250,.45)}
-    .sectionHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin: 16px 0 8px;
-    }
-    .sectionHead h2{margin:0; font-size: 1.05rem}
-    .small{color:var(--muted); font-size:.92rem}
-    details{
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(18,20,28,.65);
-      margin: 10px 0;
-      overflow:hidden;
-    }
-    summary{
-      cursor:pointer;
-      padding: 14px;
-      list-style:none;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      font-weight: 700;
-    }
-    summary::-webkit-details-marker{display:none}
-    .badge{
-      color: var(--muted);
-      border:1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: .85rem;
-      font-weight: 650;
-      white-space:nowrap;
-    }
-    .prop{
-      padding: 12px 14px;
-      border-top: 1px solid rgba(35,40,58,.75);
-    }
-    .propTitle{
-      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
-      margin-bottom: 10px;
-    }
-    .propTitle b{font-size: 1rem}
-    .propTitle .meta{color:var(--muted); font-size:.9rem}
-    .inlineHelp{color:var(--muted); font-size:.9rem; margin-top: 8px}
-    .error{
-      color: var(--bad);
-      font-size: .9rem;
-      margin-top: 8px;
-    }
-    .ok{
-      color: var(--good);
-      font-size: .95rem;
-    }
-    .hidden{display:none !important}
-    .reviewItem{
-      padding: 12px 14px;
-      border:1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(18,20,28,.55);
-      margin: 10px 0;
-    }
-    .reviewItem .k{color: var(--muted); font-size: .9rem}
-    .reviewItem .v{font-weight: 750; margin-top: 4px}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Portfolio of rebelittle — software developer, builder, and creator." />
+  <title>rebelittle — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./CSS/style.css" />
 </head>
-
 <body>
-  <header class="sb-banner">
-  <div class="sb-banner__inner">
-    <img class="sb-logo" src="./patriots.png" alt="Patriots logo" />
 
-    <div class="sb-banner__center">
-      <div class="sb-banner__title">Super Bowl Prop Sheet</div>
-      <div class="sb-banner__subtitle" id="teamsLine">Patriots vs Seahawks</div>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">rebelittle</a>
+      <div class="nav__links">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
     </div>
+  </nav>
 
-    <img class="sb-logo" src="./seahawks.png" alt="Seahawks logo" />
-  </div>
-</header>
-
-
-  <div class="wrap">
-    <div class="stepper">
-      <div class="step active" id="step1">1) Make picks</div>
-      <div class="step" id="step2">2) Review</div>
-      <div class="step" id="step3">3) Submitted</div>
+  <!-- Hero -->
+  <header class="hero" id="hero">
+    <div class="hero__content">
+      <p class="hero__greeting">Hi, I'm</p>
+      <h1 class="hero__name">rebelittle</h1>
+      <p class="hero__tagline">Developer &amp; Builder</p>
+      <p class="hero__desc">I build interactive web applications and tools that people actually enjoy using.</p>
+      <div class="hero__actions">
+        <a href="#projects" class="btn btn--primary">View my work</a>
+        <a href="#contact" class="btn btn--outline">Get in touch</a>
+      </div>
     </div>
+  </header>
 
-    <!-- STEP 1 -->
-    <section id="pagePicks">
-      <div class="card" id="entryCard">
-        <div class="grid2">
-          <div>
-            <label for="playerName">Your name (used to prevent duplicate entries)</label>
-            <input id="playerName" type="text" placeholder="Write your fuckin name down" autocomplete="name" />
-          </div>
-          <div>
-            <label>Links</label>
-            <div class="row">
-              <a href="./leaderboard.html">Leaderboard</a>
-            </div>
-            <div class="inlineHelp" id="statusLine"></div>
-          </div>
+  <!-- About -->
+  <section class="section" id="about">
+    <div class="container">
+      <h2 class="section__title">About Me</h2>
+      <div class="about__grid">
+        <div class="about__text">
+          <p>I'm a developer who loves turning ideas into polished, functional products. I focus on clean design, responsive layouts, and smooth user experiences.</p>
+          <p>My work spans full-stack web development — from interactive front-end apps with vanilla JavaScript to backend integrations with services like Supabase. I care about the details: performance, accessibility, and making things feel right.</p>
+        </div>
+        <div class="about__skills">
+          <h3>Tech I work with</h3>
+          <ul class="skills-list">
+            <li>JavaScript (ES6+)</li>
+            <li>HTML &amp; CSS</li>
+            <li>Responsive Design</li>
+            <li>Supabase</li>
+            <li>Git &amp; GitHub</li>
+            <li>GitHub Pages</li>
+          </ul>
         </div>
       </div>
-
-      <div class="card" id="tiebreakerCard">
-        <div class="propTitle">
-          <div>
-            <b>Tiebreaker: Final score prediction</b>
-            <div class="meta">Used to break ties (points shown on sheet)</div>
-          </div>
-          <div class="badge" id="tbPoints">10 pts</div>
-        </div>
-
-        <div class="grid2">
-          <div>
-            <label for="tbHome">Seahawks</label>
-            <input id="tbHome" type="number" min="0" max="99" inputmode="numeric" placeholder="e.g., 27" />
-          </div>
-          <div>
-            <label for="tbAway">Patriots</label>
-            <input id="tbAway" type="number" min="0" max="99" inputmode="numeric" placeholder="e.g., 24" />
-          </div>
-        </div>
-        <div class="inlineHelp" id="tbTeamsHint"></div>
-      </div>
-      <div id="propsRoot"></div>
-      <div class="error hidden" id="formError"></div>
-    </section>
-
-    <!-- STEP 2 -->
-    <section id="pageReview" class="hidden">
-      <div class="card">
-        <div class="sectionHead">
-          <h2>Review your picks</h2>
-          <span class="small">Nothing is submitted until you confirm.</span>
-        </div>
-        <div id="reviewList"></div>
-        <div class="error hidden" id="reviewError"></div>
-      </div>
-    </section>
-
-    <!-- STEP 3 -->
-    <section id="pageDone" class="hidden">
-      <div class="card">
-        <h2 style="margin:0 0 10px;">Submitted ✅</h2>
-        <div class="small">Your picks are recorded. $10 buy in MUST be venmoed to @Caleb-Smith-516 prior to kickoff in order for your submission to count.</div>
-        <div style="margin-top:14px;">
-          <a href="./leaderboard.html">Go to leaderboard</a>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div class="btnbar">
-    <div class="inner">
-      <button class="btn ghost hidden" id="btnBack">Back</button>
-      <button class="btn primary" id="btnNext">Review picks</button>
     </div>
-  </div>
+  </section>
 
- <link rel="stylesheet" href="./CSS/style.css?v=7">
-<script type="module" src="./app.js?v=1001"></script>
+  <!-- Projects -->
+  <section class="section section--alt" id="projects">
+    <div class="container">
+      <h2 class="section__title">Projects</h2>
+      <div class="projects__grid">
+
+        <!-- Super Bowl Prop Sheet -->
+        <article class="project-card project-card--featured">
+          <div class="project-card__badge">Featured</div>
+          <h3 class="project-card__title">Super Bowl Prop Sheet</h3>
+          <p class="project-card__desc">A full-featured Super Bowl prop betting web app for friendly prediction pools. Supports 40+ props across categories like touchdowns, player stats, kickers, and miscellaneous game events. Includes real-time leaderboard with medal-tier rankings, a multi-step pick submission flow, tiebreaker scoring, and live scoring updates — all backed by Supabase.</p>
+          <ul class="project-card__tech">
+            <li>JavaScript</li>
+            <li>HTML/CSS</li>
+            <li>Supabase</li>
+            <li>Responsive UI</li>
+          </ul>
+          <div class="project-card__links">
+            <a href="https://rebelittle.github.io/super-bowl-prop-sheet/" class="btn btn--small btn--primary" target="_blank" rel="noopener">Live Site</a>
+            <a href="https://github.com/rebelittle/super-bowl-prop-sheet" class="btn btn--small btn--outline" target="_blank" rel="noopener">Source Code</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section" id="contact">
+    <div class="container container--narrow">
+      <h2 class="section__title">Get In Touch</h2>
+      <p class="contact__text">Have a project idea, question, or just want to say hello? Feel free to reach out.</p>
+      <div class="contact__links">
+        <a href="https://github.com/rebelittle" class="btn btn--primary" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 rebelittle. Built with care.</p>
+    </div>
+  </footer>
 
 </body>
 </html>
