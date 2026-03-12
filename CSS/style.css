@@ -1,18 +1,18 @@
 /* ===== Variables ===== */
 :root {
-  --bg: #0f172a;
-  --bg-alt: #1e293b;
-  --surface: #1e293b;
-  --surface-hover: #334155;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --border: #334155;
-  --radius: 12px;
-  --max-width: 1000px;
-  --transition: 0.2s ease;
-}
+    --bg: #0e0e0e;
+    --bg-alt: #1a1a1a;
+    --surface: #1e1e1e;
+    --surface-hover: #282828;
+    --text: #f0f0f0;
+    --text-muted: #9a9a9a;
+    --accent: #bb0000;
+    --accent-hover: #d41414;
+    --border: #2e2e2e;
+    --radius: 12px;
+    --max-width: 1000px;
+    --transition: 0.2s ease;
+  }
 
 /* ===== Reset ===== */
 *, *::before, *::after {
@@ -178,16 +178,16 @@ img {
 }
 
 .btn--primary {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: var(--accent);
-}
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
 
-.btn--primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  color: var(--bg);
-}
+  .btn--primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: #fff;
+  }
 
 .btn--outline {
   background: transparent;
@@ -225,14 +225,14 @@ img {
 }
 
 .section__title::after {
-  content: '';
-  display: block;
-  width: 48px;
-  height: 3px;
-  background: var(--accent);
-  border-radius: 2px;
-  margin-top: 12px;
-}
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-top: 12px;
+  }
 
 /* ===== About ===== */
 .about__grid {
