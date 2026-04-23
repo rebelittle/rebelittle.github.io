@@ -73,30 +73,36 @@
         <h2 class="section__title">Projects</h2>
         <div class="projects__grid">
 
-          <article class="project-card featured">
-  <div class="project-header">
-    <h3>2026 NFL Draft Pool Tracker</h3>
-    <span class="project-date">April 2026</span>
+         <article style="background:#162021; border:1px solid #2a3a3d; padding:1.75rem; margin-bottom:1.5rem; font-family:'IBM Plex Mono',monospace; color:#eef2f0;">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+    <h3 style="font-family:'Bebas Neue',Impact,sans-serif; font-size:1.8rem; color:#d4ff3a; margin:0; letter-spacing:0.02em;">2026 NFL Draft Pool Tracker</h3>
+    <span style="font-size:0.75rem; color:#94a3a0; letter-spacing:0.1em; text-transform:uppercase;">April 2026 · Featured</span>
   </div>
 
-  <p class="project-tagline">
+  <p style="font-family:'Fraunces',Georgia,serif; font-style:italic; color:#94a3a0; margin:0 0 1rem 0;">
     Live scoring web app + odds-optimized draft slate. Built in 24 hours for the 2026 NFL Draft.
   </p>
 
-  <ul class="project-highlights">
-    <li>Static site on GitHub Pages with custom scoring engine (<strong>11 unit tests passing</strong>), client-side entry submission form, and JSON-driven data layer — zero backend, zero framework.</li>
-    <li>Ingested live DraftKings player-at-pick prop markets for 30 Round 1 slots, converted American odds to implied probabilities, and solved the global player-to-slot assignment via the <strong>Hungarian algorithm</strong> (<code>scipy.optimize.linear_sum_assignment</code>).</li>
-    <li>Optimized slate beat naive greedy baselines by <strong>+6.5 expected points</strong> under market-implied probabilities; real-time leaderboard auto-refreshes every 60 seconds.</li>
-    <li>Integrated Venmo deep-link payment flow for $5 entries; trade predictions with bonus point scoring (+6/+10).</li>
+  <ul style="padding-left:1.2rem; margin:0 0 1rem 0; font-size:0.9rem; line-height:1.6;">
+    <li>Static site on GitHub Pages with custom scoring engine (<strong style="color:#d4ff3a;">11 unit tests passing</strong>), client-side entry submission form, and JSON-driven data layer — zero backend, zero framework.</li>
+    <li>Ingested live DraftKings player-at-pick prop markets for 30 Round 1 slots, converted American odds to implied probabilities, and solved the global player-to-slot assignment via the <strong style="color:#d4ff3a;">Hungarian algorithm</strong> (<code style="background:#0a0f0d; padding:0.1rem 0.3rem; border-radius:2px; font-size:0.85em;">scipy.optimize.linear_sum_assignment</code>).</li>
+    <li>Optimized slate beat naive greedy baselines by <strong style="color:#d4ff3a;">+6.5 expected points</strong> under market-implied probabilities; real-time leaderboard auto-refreshes every 60 seconds.</li>
+    <li>Integrated Venmo deep-link payment flow for $5 entries; trade predictions score bonus points (+6 one team / +10 both teams).</li>
   </ul>
 
-  <div class="project-stack">
-    <span class="tag">Vanilla JS</span>
-    <span class="tag">Python</span>
-    <span class="tag">scipy</span>
-    <span class="tag">GitHub Pages</span>
-    <span class="tag">Hungarian Algorithm</span>
+  <div style="margin-bottom:1rem;">
+    <span style="display:inline-block; background:#1d2a2c; color:#94a3a0; padding:0.25rem 0.6rem; margin-right:0.3rem; margin-bottom:0.3rem; font-size:0.7rem; letter-spacing:0.1em;">VANILLA JS</span>
+    <span style="display:inline-block; background:#1d2a2c; color:#94a3a0; padding:0.25rem 0.6rem; margin-right:0.3rem; margin-bottom:0.3rem; font-size:0.7rem; letter-spacing:0.1em;">PYTHON</span>
+    <span style="display:inline-block; background:#1d2a2c; color:#94a3a0; padding:0.25rem 0.6rem; margin-right:0.3rem; margin-bottom:0.3rem; font-size:0.7rem; letter-spacing:0.1em;">SCIPY</span>
+    <span style="display:inline-block; background:#1d2a2c; color:#94a3a0; padding:0.25rem 0.6rem; margin-right:0.3rem; margin-bottom:0.3rem; font-size:0.7rem; letter-spacing:0.1em;">GITHUB PAGES</span>
+    <span style="display:inline-block; background:#1d2a2c; color:#94a3a0; padding:0.25rem 0.6rem; margin-right:0.3rem; margin-bottom:0.3rem; font-size:0.7rem; letter-spacing:0.1em;">HUNGARIAN ALGORITHM</span>
   </div>
+
+  <div>
+    <a href="https://rebelittle.github.io/nfl-draft-2026" target="_blank" rel="noopener" style="display:inline-block; background:#d4ff3a; color:#0a0f0d; padding:0.6rem 1.2rem; margin-right:0.5rem; text-decoration:none; font-family:'Bebas Neue',Impact,sans-serif; font-size:1rem; letter-spacing:0.05em; transform:skew(-6deg);">LIVE SITE →</a>
+    <a href="https://github.com/rebelittle/nfl-draft-2026" target="_blank" rel="noopener" style="display:inline-block; border:1px solid #2a3a3d; color:#eef2f0; padding:0.6rem 1.2rem; text-decoration:none; font-family:'Bebas Neue',Impact,sans-serif; font-size:1rem; letter-spacing:0.05em; transform:skew(-6deg);">GITHUB →</a>
+  </div>
+</article>
 
   <div class="project-links">
     <a href="https://rebelittle.github.io/nfl-draft-2026" target="_blank" rel="noopener">Live Site →</a>
