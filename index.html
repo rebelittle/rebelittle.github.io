@@ -73,6 +73,37 @@
         <h2 class="section__title">Projects</h2>
         <div class="projects__grid">
 
+          <article class="project-card featured">
+  <div class="project-header">
+    <h3>2026 NFL Draft Pool Tracker</h3>
+    <span class="project-date">April 2026</span>
+  </div>
+
+  <p class="project-tagline">
+    Live scoring web app + odds-optimized draft slate. Built in 24 hours for the 2026 NFL Draft.
+  </p>
+
+  <ul class="project-highlights">
+    <li>Static site on GitHub Pages with custom scoring engine (<strong>11 unit tests passing</strong>), client-side entry submission form, and JSON-driven data layer — zero backend, zero framework.</li>
+    <li>Ingested live DraftKings player-at-pick prop markets for 30 Round 1 slots, converted American odds to implied probabilities, and solved the global player-to-slot assignment via the <strong>Hungarian algorithm</strong> (<code>scipy.optimize.linear_sum_assignment</code>).</li>
+    <li>Optimized slate beat naive greedy baselines by <strong>+6.5 expected points</strong> under market-implied probabilities; real-time leaderboard auto-refreshes every 60 seconds.</li>
+    <li>Integrated Venmo deep-link payment flow for $5 entries; trade predictions with bonus point scoring (+6/+10).</li>
+  </ul>
+
+  <div class="project-stack">
+    <span class="tag">Vanilla JS</span>
+    <span class="tag">Python</span>
+    <span class="tag">scipy</span>
+    <span class="tag">GitHub Pages</span>
+    <span class="tag">Hungarian Algorithm</span>
+  </div>
+
+  <div class="project-links">
+    <a href="https://rebelittle.github.io/nfl-draft-2026" target="_blank" rel="noopener">Live Site →</a>
+    <a href="https://github.com/rebelittle/nfl-draft-2026" target="_blank" rel="noopener">GitHub →</a>
+  </div>
+</article>
+
           <article class="project-card project-card--featured">
             <div class="project-card__badge">Featured</div>
             <h3 class="project-card__title">Super Bowl Prop Sheet</h3>
