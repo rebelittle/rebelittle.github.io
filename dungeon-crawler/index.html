@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Dungeon Crawler</title>
+    <meta name="description" content="CSE 3902 Group 3's dungeon crawler, played in the browser: the basement in 2D, then the DOOM escape in first person." />
+    <!-- relative, so the game works wherever the site puts it (rebelittle.github.io/dungeon-crawler/) -->
+    <base href="./" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link rel="icon" href="favicon.ico" />
+</head>
+
+<body>
+    <!-- Blazor replaces this with the game's page (Pages/Index.razor) once .NET has loaded -->
+    <div id="app">
+        <div class="screen">
+            <h1>Dungeon Crawler</h1>
+            <p>Loading .NET in the browser&hellip;</p>
+            <div class="bar"><div class="bar__fill"></div></div>
+        </div>
+    </div>
+
+    <!-- shown once .NET is ready: a click is what lets the browser play the game's music -->
+    <div id="start" class="screen" hidden>
+        <a class="back" href="../">&larr; Back to the site</a>
+        <h1>Dungeon Crawler</h1>
+        <p class="tagline">Beat Duke of Flies, drop through his trapdoor, and escape the basement in first person.</p>
+        <button id="play" type="button">Click to play</button>
+        <p id="busy" hidden>Loading the dungeon&hellip;</p>
+        <div class="controls">
+            <section>
+                <h2>The basement</h2>
+                <dl>
+                    <dt>WASD</dt><dd>walk</dd>
+                    <dt>Arrows / hold left mouse</dt><dd>shoot</dd>
+                    <dt>Space</dt><dd>active item</dd>
+                    <dt>Q</dt><dd>pill</dd>
+                    <dt>E</dt><dd>bomb</dd>
+                </dl>
+            </section>
+            <section>
+                <h2>The DOOM escape</h2>
+                <dl>
+                    <dt>W / S, A / D</dt><dd>walk, strafe</dd>
+                    <dt>&larr; / &rarr;</dt><dd>turn</dd>
+                    <dt>&uarr;</dt><dd>shoot</dd>
+                    <dt>Shift</dt><dd>run</dd>
+                    <dt>E</dt><dd>open doors</dd>
+                    <dt>Tab</dt><dd>map</dd>
+                </dl>
+            </section>
+            <section>
+                <h2>Anywhere</h2>
+                <dl>
+                    <dt>Esc / right-click</dt><dd>pause menu</dd>
+                    <dt>F</dt><dd>fullscreen</dd>
+                    <dt>R</dt><dd>new run</dd>
+                </dl>
+            </section>
+        </div>
+        <p class="small">Needs a keyboard. Made with <a href="https://github.com/kniEngine/kni">KNI</a>.</p>
+    </div>
+
+    <div id="blazor-error-ui">
+        Something went wrong. <a href="" class="reload">Reload</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script type="module">
+        import { BrotliDecode } from './js/decode.min.js';
+        window.BrotliDecode = BrotliDecode;
+        // GitHub Pages doesn't serve the publish's Brotli (.br) files itself, so they're fetched
+        // and unpacked here: a much smaller download. Not on localhost, where they aren't built.
+        var enableBrotliDecompression = true;
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity)
+            {
+                if (enableBrotliDecompression === true && type !== 'dotnetjs' && location.hostname !== 'localhost')
+                {
+                    return (async function()
+                    {
+                        const response = await fetch(defaultUri + '.br', { cache: 'no-cache' });
+                        if (!response.ok)
+                            throw new Error(response.statusText);
+                        const originalResponseBuffer = await response.arrayBuffer();
+                        const originalResponseArray = new Int8Array(originalResponseBuffer);
+                        const contentType = (type === 'dotnetwasm')
+                                          ? 'application/wasm'
+                                          : 'application/octet-stream';
+                        const decompressedResponseArray = BrotliDecode(originalResponseArray);
+                        return new Response(decompressedResponseArray,
+                                            { headers: { 'content-type': contentType }
+                                   });
+                    })();
+                }
+            }
+        });
+    </script>
+
+    <script src="_content/nkast.Wasm.JSInterop/js/JSObject.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Window.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Document.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Navigator.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Gamepad.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Media.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.XHR/js/XHR.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/Canvas.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/CanvasGLContext.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.Audio/js/Audio.10.0.3.js"></script>
+    <script src="_content/nkast.Wasm.XR/js/XR.10.0.3.js"></script>
+
+    <script>
+        function tickJS()
+        {
+            window.theInstance.invokeMethod('TickDotNet');
+            window.requestAnimationFrame(tickJS);
+        }
+
+        // called by the game's page (Pages/Index.razor.cs) once .NET is running
+        window.initRenderJS = (instance) =>
+        {
+            window.theInstance = instance;
+
+            var canvas = document.getElementById('theCanvas');
+            var holder = document.getElementById('canvasHolder');
+            canvas.width = holder.clientWidth;
+            canvas.height = holder.clientHeight;
+            // right-click opens the game's pause menu, not the browser's
+            canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+            var start = document.getElementById('start');
+            var play = document.getElementById('play');
+            start.hidden = false;
+            play.focus();
+            play.addEventListener('click', function ()
+            {
+                play.hidden = true;
+                document.getElementById('busy').hidden = false;
+                // two frames, so "Loading the dungeon" shows before the first tick, which makes
+                // the game and loads all its content at once
+                window.requestAnimationFrame(() => window.requestAnimationFrame(() =>
+                {
+                    window.theInstance.invokeMethod('TickDotNet');
+                    start.hidden = true;
+                    canvas.focus();
+                    window.requestAnimationFrame(tickJS);
+                }));
+            }, { once: true });
+        };
+
+        // F in the game (GameScreen.ToggleFullscreen, through WebHost)
+        window.toggleFullscreen = () =>
+        {
+            if (document.fullscreenElement)
+                document.exitFullscreen();
+            else
+                document.getElementById('canvasHolder').requestFullscreen().catch(() => { });
+        };
+
+        window.addEventListener("keydown", function(event)
+        {
+            // keep Tab (the escape's map), Space, and the arrows in the game: no moving focus or
+            // scrolling the page
+            if ([9, 32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)
+                event.preventDefault();
+        });
+        window.addEventListener("wheel", function(event)
+        {
+            event.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+
+</html>

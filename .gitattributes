@@ -1,0 +1,2 @@
+# the browser build of Dungeon Crawler, stored byte for byte: its loader checks file hashes
+dungeon-crawler/** -text

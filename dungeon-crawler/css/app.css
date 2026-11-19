@@ -1,0 +1,197 @@
+﻿/* the game's page: the canvas fills the window, with the loading and start screens over it */
+:root
+{
+    --ink: #e8dcc8;
+    --quiet: #a89c8c;
+    --accent: #d23c2a;
+    --paper: #120c0b;
+}
+
+html, body
+{
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: var(--ink);
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+#canvasHolder
+{
+    position: fixed;
+    inset: 0;
+    background: #000;
+}
+
+#theCanvas
+{
+    display: block;
+    outline: none;
+}
+
+.screen
+{
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background: radial-gradient(ellipse at center, #2a1714 0%, var(--paper) 70%);
+    text-align: center;
+    overflow-y: auto;
+}
+
+.screen[hidden]
+{
+    display: none;
+}
+
+h1
+{
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tagline, .screen > p
+{
+    margin: 0;
+    color: var(--quiet);
+}
+
+/* .NET's download, as Blazor reports it */
+.bar
+{
+    width: min(22rem, 80vw);
+    height: 0.5rem;
+    background: #3a2622;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.bar__fill
+{
+    width: var(--blazor-load-percentage, 0%);
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.2s;
+}
+
+#play
+{
+    margin: 0.8rem 0;
+    padding: 0.8rem 2.4rem;
+    font: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+}
+
+#play:hover, #play:focus-visible
+{
+    background: #ee4a36;
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+}
+
+#busy
+{
+    margin: 1.2rem 0;
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.controls
+{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem 2.5rem;
+    margin-top: 0.5rem;
+    text-align: left;
+}
+
+.controls h2
+{
+    margin: 0 0 0.3rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.controls dl
+{
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0.15rem 0.8rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.controls dt
+{
+    font-weight: 700;
+}
+
+.controls dd
+{
+    margin: 0;
+    color: var(--quiet);
+}
+
+.small
+{
+    margin-top: 1rem;
+    font-size: 0.8rem;
+}
+
+a
+{
+    color: var(--ink);
+}
+
+.back
+{
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: var(--quiet);
+}
+
+.back:hover
+{
+    color: var(--ink);
+}
+
+#blazor-error-ui
+{
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 0.6rem 1rem;
+    background: #5a1a12;
+    color: #fff;
+}
+
+#blazor-error-ui a
+{
+    color: #fff;
+    margin-left: 0.5rem;
+}
